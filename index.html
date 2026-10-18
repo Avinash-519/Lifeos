@@ -1,13 +1,1988 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>lifeos</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LifeOS v0.3 — Daily Schedule, Pomodoro, Streak & Task Roadmaps</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    .mono-timer {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.45); }
+      50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+    }
+    .active-task-card {
+      animation: pulse-ring 2.2s infinite;
+    }
+    #accountBar button {
+      cursor: pointer;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+  <div id="accountBar" class="hidden items-center justify-between gap-3 border-b border-slate-800 bg-slate-900 px-4 py-2 text-xs">
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="text-slate-300">Saved in this browser</span>
+      <span id="syncStatus" role="status" aria-live="polite" class="text-emerald-300">Saved</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="importStateBtn" type="button" class="rounded-md border border-slate-700 px-2.5 py-1.5 text-slate-200 hover:bg-slate-800">Import backup</button>
+      <input id="importStateFile" type="file" accept="application/json,.json" hidden />
+      <button id="exportStateBtn" type="button" class="rounded-md border border-slate-700 px-2.5 py-1.5 text-slate-200 hover:bg-slate-800">Export backup</button>
+    </div>
+  </div>
+
+
+  <!-- Top Sticky Active Focus & Pomodoro Bar -->
+  <div id="activeFocusBanner" class="sticky top-0 z-40 border-b border-slate-800/90 bg-slate-900/95 backdrop-blur-md transition-all">
+    <div class="mx-auto max-w-6xl px-4 py-2.5 flex flex-col gap-2">
+      <!-- Row 1: Active Task Status & Stopwatch -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div id="bannerStatusDot" class="h-3 w-3 rounded-full bg-slate-500 shrink-0"></div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="bannerStatusLabel" class="text-xs font-semibold uppercase tracking-wider text-slate-400">No Active Timer — Click Any Task Below to Start</span>
+              <span id="bannerCategoryBadge" class="hidden rounded-full px-2 py-0.5 text-[11px] font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"></span>
+            </div>
+            <p id="bannerTaskTitle" class="truncate text-sm sm:text-base font-bold text-slate-200">Select a schedule block to start tracking your focus time</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 ml-auto">
+          <div class="text-right">
+            <div id="bannerLiveTimer" class="mono-timer text-xl sm:text-2xl font-bold text-slate-200">00:00:00</div>
+            <div id="bannerTargetSubtext" class="text-[11px] text-slate-400">Target: --</div>
+          </div>
+          <div id="bannerControls" class="hidden items-center gap-2">
+            <button id="bannerPauseBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 px-3 py-1.5 text-xs font-semibold text-amber-200 transition">
+              <span>Take Break</span>
+            </button>
+            <button id="bannerCompleteBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 px-3 py-1.5 text-xs font-semibold text-emerald-200 transition">
+              <span>Finish</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Built-In Pomodoro Alarm Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="font-semibold text-slate-300 flex items-center gap-1">
+            <span>🔔 Pomodoro Alarm:</span>
+          </span>
+          <div class="inline-flex rounded-lg bg-slate-950 p-0.5 border border-slate-800">
+            <button type="button" data-pomo-preset="25-5" class="pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition">25m / 5m</button>
+            <button type="button" data-pomo-preset="50-10" class="pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition">50m / 10m (DSA)</button>
+            <button type="button" data-pomo-preset="45-0" class="pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition">45m Cap (AI)</button>
+          </div>
+          <span id="pomoPhaseBadge" class="rounded-md bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[11px] font-semibold text-indigo-300">Work Sprint</span>
+        </div>
+
+        <div class="flex items-center gap-2 ml-auto">
+          <div id="pomoCountdownDisplay" class="mono-timer text-sm sm:text-base font-bold text-amber-300 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1">50:00</div>
+          <button id="pomoToggleBtn" type="button" class="rounded-lg bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1 text-[11px] font-semibold text-white transition">
+            Start Pomo
+          </button>
+          <button id="pomoSwitchPhaseBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition" title="Switch between Work Sprint and Break">
+            Switch Break
+          </button>
+          <button id="pomoResetBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition">
+            Reset
+          </button>
+          <button id="pomoMuteBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-200 transition" title="Toggle alarm chime sound">
+            🔊 Sound On
+          </button>
+          <button id="pomoTestChimeBtn" type="button" class="rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 px-2 py-1 text-[11px] text-slate-300 transition" title="Test the Pomodoro alarm sound">
+            Test Bell
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Thin progress bar for active task -->
+    <div class="h-1 w-full bg-slate-800 overflow-hidden">
+      <div id="bannerProgressBar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="mx-auto max-w-6xl px-4 py-5 space-y-5">
+
+    <!-- Header, Active Topic Badge & Day Mode Switcher -->
+    <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-3 border-b border-slate-800/80">
+      <div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <span class="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-600/30">OS</span>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">LifeOS <span class="text-indigo-400 font-semibold text-base sm:text-lg">Daily Execution & Focus Tracker</span></h1>
+        </div>
+        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <span>Daily anchor</span>
+          <span>•</span>
+          <span>Current focus:</span>
+          <button id="editTopicQuickBtn" type="button" class="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 px-2 py-0.5 font-semibold text-emerald-300 transition" title="Click to change your current DSA or System Design module">
+            <span id="currentTopicLabel">Choose a learning topic</span>
+            <span class="text-[10px] opacity-80">✎</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Live Clock Badge -->
+        <div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300">
+          <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+          <span id="currentClockDisplay" class="mono-timer font-semibold">--:--</span>
+        </div>
+
+        <!-- Day Type Switcher -->
+        <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800">
+          <button type="button" data-daymode="mwf" class="day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">
+            Mon / Wed / Fri (Class)
+          </button>
+          <button type="button" data-daymode="tth" class="day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">
+            Tue / Thu (Assign.)
+          </button>
+          <button type="button" data-daymode="weekend" class="day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">
+            Sat / Sun (Weekend)
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Streak & 7-Day Consistency Strip -->
+    <section class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-2xl">
+          🔥
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="streakCountHeading" class="text-base sm:text-lg font-extrabold text-white">1 Day Streak</span>
+            <span id="streakTodayBadge" class="rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+              Goal: 90m+ DSA or 4+ blocks done
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Consistency beats intensity. Click any day in the 7-day strip to manually toggle if you studied offline.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div id="sevenDayStrip" class="flex items-center gap-1.5"></div>
+        <button id="toggleTodayStreakBtn" type="button" class="rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 px-3 py-2 text-xs font-semibold text-amber-200 transition">
+          ✓ Mark Today Done
+        </button>
+      </div>
+    </section>
+
+    <!-- KPI Summary Row -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">Total Tracked Today</span>
+          <span class="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[11px] font-semibold text-indigo-400">All Tasks</span>
+        </div>
+        <div id="kpiTotalTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-white">0h 00m 00s</div>
+        <div id="kpiTotalSub" class="mt-1 text-xs text-slate-400">0 focus sessions • 0 🍅</div>
+      </div>
+
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">Learning focus</span>
+          <span class="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">Priority #1</span>
+        </div>
+        <div id="kpiDsaTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-emerald-300">0h 00m</div>
+        <div id="kpiDsaSub" class="mt-1 text-xs text-slate-400">Target: 4h+ problem solving</div>
+      </div>
+
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">AI & LifeOS Sprint</span>
+          <span id="kpiAiBadge" class="rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold text-purple-400">45m Cap</span>
+        </div>
+        <div id="kpiAiTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-purple-300">00m 00s</div>
+        <div id="kpiAiSub" class="mt-1 text-xs text-slate-400">Brain refresh reward slot</div>
+      </div>
+
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400">Blocks Completed</span>
+          <span id="kpiDonePercent" class="rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-semibold text-sky-400">0%</span>
+        </div>
+        <div id="kpiBlocksCompleted" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-white">0 / 11</div>
+        <div id="kpiDpSolvedSub" class="mt-1 text-xs text-slate-400">Problems Solved: 0</div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button type="button" data-view="schedule" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
+          Daily Schedule & Timer
+        </button>
+        <button type="button" data-view="dsa" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
+          Learning Progress
+        </button>
+        <button type="button" data-view="analytics" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
+          Time Breakdown & Session Log
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="openAddTaskModalBtn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition">
+          <span>Add Custom Task</span>
+        </button>
+        <button id="openResetModalBtn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 px-3 py-2 text-xs font-medium text-slate-300 transition">
+          Reset Day Timers
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 1: DAILY SCHEDULE & CLICK-TO-TRACK -->
+    <section id="view-schedule" class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" data-cat="all" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">All Blocks</button>
+          <button type="button" data-cat="DSA & Scaler" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Learning</button>
+          <button type="button" data-cat="IAM Work" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Work</button>
+          <button type="button" data-cat="AI & LifeOS" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">AI & LifeOS</button>
+          <button type="button" data-cat="Health & Gym" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Health & Gym</button>
+          <button type="button" data-cat="Life & Routine" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Life & Routine</button>
+        </div>
+        <p class="text-xs text-slate-400">
+          Click any task to <span class="text-slate-200 font-medium">Start Timer + Open Roadmap</span>, or click <span class="text-indigo-300 font-medium">📖 Content & Progress</span> to see what's achieved vs. remaining.
+        </p>
+      </div>
+
+      <!-- Schedule List Container -->
+      <div id="scheduleListContainer" class="grid grid-cols-1 gap-3.5"></div>
+    </section>
+
+    <!-- VIEW 2: GENERIC SCALER DSA & SYSTEM DESIGN ASSIGNMENT TRACKER -->
+    <section id="view-dsa" class="hidden space-y-5">
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 sm:p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Active Module / Topic:</span>
+              <input id="activeTopicInput" type="text" value="Choose a learning topic" class="rounded-lg bg-slate-950 border border-slate-700 px-2.5 py-1 text-xs font-semibold text-white focus:border-emerald-500 focus:outline-none" />
+              <div class="flex flex-wrap gap-1">
+                <button type="button" data-topic-preset="Dynamic Programming" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">DP</button>
+                <button type="button" data-topic-preset="Graphs & Shortest Paths" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">Graphs</button>
+                <button type="button" data-topic-preset="Trees, BST & Heaps" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">Trees</button>
+                <button type="button" data-topic-preset="System Design (LLD / HLD)" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">System Design</button>
+              </div>
+            </div>
+            <h2 class="mt-2 text-lg font-bold text-white">Learning Goals & Practice Queue</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Log the 5–8 problems unlocked after class. Split them across 48 hours: 3–4 problems in Block 1 (11:00 AM) and 2–3 harder problems in Block 2 (4:45 PM).
+            </p>
+          </div>
+
+          <form id="addProblemForm" class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
+            <input id="newProblemTitle" type="text" required placeholder="Add problem or design topic..." class="w-full sm:w-56 rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+            <select id="newProblemType" class="rounded-xl bg-slate-950 border border-slate-700 px-2.5 py-2 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none">
+              <option value="Assignment">Assignment</option>
+              <option value="Additional">Homework</option>
+              <option value="Revision">Revision</option>
+            </select>
+            <button type="submit" class="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 text-xs font-semibold text-white transition shrink-0">
+              + Add Problem
+            </button>
+          </form>
+        </div>
+
+        <div id="dsaProblemList" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: TIME BREAKDOWN & FOCUS SESSION LOG -->
+    <section id="view-analytics" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Category Planned vs Actual Breakdown -->
+        <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-white">Category Time Allocation (Today)</h2>
+              <p class="text-xs text-slate-400">Actual tracked time vs. your planned daily budget</p>
+            </div>
+            <button id="copyReportBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition">
+              Copy Daily Summary
+            </button>
+          </div>
+          <div id="categoryBreakdownList" class="space-y-3.5"></div>
+        </div>
+
+        <!-- Focus Session History Log -->
+        <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 flex flex-col justify-between space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-white">Focus & Break Session Log</h2>
+              <p class="text-xs text-slate-400">Every work burst recorded when you click to start and take a break</p>
+            </div>
+            <button id="clearLogsBtn" type="button" class="text-xs text-slate-400 hover:text-rose-400 transition">
+              Clear Log
+            </button>
+          </div>
+          <div id="sessionLogContainer" class="max-h-80 overflow-y-auto space-y-2 pr-1"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal: Add OR Edit Schedule Block -->
+  <div id="addTaskModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 id="taskModalHeading" class="text-base font-bold text-white">Add Custom Task to Current Schedule</h3>
+        <button id="closeAddTaskModalBtn" type="button" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
+      </div>
+      <form id="customTaskForm" class="space-y-3">
+        <input id="editingTaskId" type="hidden" value="" />
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Task Title</label>
+          <input id="customTaskTitle" type="text" required placeholder="e.g., DSA Block 1: Core Problem Solving" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Time Window</label>
+            <input id="customTaskWindow" type="text" required placeholder="e.g., 11:00 AM – 1:00 PM" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Target Minutes</label>
+            <input id="customTaskMinutes" type="number" min="5" max="360" value="45" required class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Category</label>
+          <select id="customTaskCategory" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none">
+            <option value="DSA & Scaler">Learning</option>
+            <option value="IAM Work">Work</option>
+            <option value="AI & LifeOS">AI & LifeOS</option>
+            <option value="Health & Gym">Health & Gym</option>
+            <option value="Life & Routine">Life & Routine</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Focus Notes / Description</label>
+          <input id="customTaskDesc" type="text" placeholder="Optional details or specific goal for this block" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button id="cancelAddTaskBtn" type="button" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-300">Cancel</button>
+          <button id="saveTaskSubmitBtn" type="submit" class="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-xs font-semibold text-white">Add to Schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Reset Day Confirmation -->
+  <div id="resetDayModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+    <div class="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-white">Reset Today's Tracked Timers?</h3>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        You can zero out today's elapsed timers while keeping your custom task names and learning roadmaps, or restore the default schedule template.
+      </p>
+      <div class="flex flex-col gap-2 pt-1">
+        <button id="confirmResetBtn" type="button" class="w-full rounded-xl bg-amber-600 hover:bg-amber-500 px-4 py-2 text-xs font-semibold text-white">
+          Reset Day
+        </button>
+        <button id="restoreDefaultScheduleBtn" type="button" class="w-full rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 px-4 py-2 text-xs font-semibold text-rose-200">
+          Restore Default Schedule Template
+        </button>
+        <button id="cancelResetBtn" type="button" class="w-full rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-300">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed bottom-4 right-4 z-50 hidden rounded-xl bg-slate-900 border border-indigo-500/40 px-4 py-2.5 text-xs font-semibold text-slate-100 shadow-xl"></div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'lifeos_v03_state_2026';
+
+      function createDefaultSchedule(prefix) {
+        const template = [
+          { timeWindow: '8:00 AM – 9:00 AM', startHour: 8, endHour: 9, targetMinutes: 60, title: 'Morning routine', category: 'Health & Gym', desc: 'Start the day with a routine that works for you.' },
+          { timeWindow: '9:00 AM – 11:00 AM', startHour: 9, endHour: 11, targetMinutes: 120, title: 'Focused work block', category: 'IAM Work', desc: 'Make progress on one important work or personal task.' },
+          { timeWindow: '11:00 AM – 12:00 PM', startHour: 11, endHour: 12, targetMinutes: 60, title: 'Learning block', category: 'DSA & Scaler', desc: 'Study a topic of your choice and capture useful notes.' },
+          { timeWindow: '12:00 PM – 1:00 PM', startHour: 12, endHour: 13, targetMinutes: 60, title: 'Lunch and reset', category: 'Life & Routine', desc: 'Take a screen break and recharge.' },
+          { timeWindow: '1:00 PM – 3:00 PM', startHour: 13, endHour: 15, targetMinutes: 120, title: 'Project sprint', category: 'AI & LifeOS', desc: 'Build, practice, or make progress on a project.' },
+          { timeWindow: '3:00 PM – 4:00 PM', startHour: 15, endHour: 16, targetMinutes: 60, title: 'Movement break', category: 'Health & Gym', desc: 'Move, stretch, or get some fresh air.' }
+        ];
+        return template.map(function (task, index) {
+          return Object.assign({}, task, {
+            id: prefix + '-' + (index + 1),
+            elapsedSeconds: 0,
+            completed: false,
+            sessions: 0
+          });
+        });
+      }
+
+      const DEFAULT_SCHEDULES = {
+        mwf: createDefaultSchedule('mwf'),
+        tth: createDefaultSchedule('tth'),
+        weekend: createDefaultSchedule('wk')
+      };
+
+      const DEFAULT_DSA_PROBLEMS = [
+        { id: 'dp-1', title: 'Add a learning goal', topic: 'Choose a learning topic', type: 'Assignment', status: 'Todo', notes: '' }
+      ];
+
+      // Inside-Task Content & Roadmaps synced by Category (Learned/Achieved Till Now vs. Remaining)
+      const DEFAULT_TRACK_CONTENT = {
+        'AI & LifeOS': {
+          subtitle: 'Project roadmap',
+          notes: 'Track the next steps for a project you want to build.',
+          items: [
+            { id: 'ai-1', text: 'Define a small, achievable milestone', done: false },
+            { id: 'ai-2', text: 'Break the milestone into tasks', done: false },
+            { id: 'ai-3', text: 'Build and review the result', done: false }
+          ]
+        },
+        'DSA & Scaler': {
+          subtitle: 'Learning roadmap',
+          notes: 'Choose a subject and record what you want to learn next.',
+          items: [
+            { id: 'dsa-1', text: 'Choose a topic to study', done: false },
+            { id: 'dsa-2', text: 'Practice and note what you learned', done: false }
+          ]
+        },
+        'IAM Work': {
+          subtitle: 'Work priorities',
+          notes: 'Keep work priorities and follow-ups in one place.',
+          items: [
+            { id: 'iam-1', text: 'Add a work priority', done: false },
+            { id: 'iam-2', text: 'Review open follow-ups', done: false }
+          ]
+        },
+        'Health & Gym': {
+          subtitle: 'Health and wellbeing',
+          notes: 'Track routines that support your wellbeing.',
+          items: [
+            { id: 'gym-1', text: 'Choose a movement goal', done: false },
+            { id: 'gym-2', text: 'Make time for rest and recovery', done: false }
+          ]
+        },
+        'Life & Routine': {
+          subtitle: 'Personal routines',
+          notes: 'Add the everyday routines you want to remember.',
+          items: [
+            { id: 'life-1', text: 'Add a personal routine', done: false },
+            { id: 'life-2', text: 'Schedule a regular reset', done: false }
+          ]
+        }
+      };
+
+      const CATEGORY_STYLES = {
+        'DSA & Scaler': {
+          badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+          bar: 'bg-emerald-500'
+        },
+        'IAM Work': {
+          badge: 'bg-sky-500/15 text-sky-300 border-sky-500/30',
+          bar: 'bg-sky-500'
+        },
+        'AI & LifeOS': {
+          badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+          bar: 'bg-purple-500'
+        },
+        'Health & Gym': {
+          badge: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+          bar: 'bg-amber-500'
+        },
+        'Life & Routine': {
+          badge: 'bg-slate-700/60 text-slate-300 border-slate-600/50',
+          bar: 'bg-slate-400'
+        }
+      };
+
+      function getDateKey(dateObj) {
+        const d = dateObj || new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+      }
+
+      function detectDefaultDayMode() {
+        const day = new Date().getDay();
+        if (day === 1 || day === 3 || day === 5) return 'mwf';
+        if (day === 2 || day === 4) return 'tth';
+        return 'weekend';
+      }
+
+      let state = {
+        dayMode: detectDefaultDayMode(),
+        activeView: 'schedule',
+        categoryFilter: 'all',
+        currentTopic: 'Choose a learning topic',
+        expandedTaskIds: {}, // keyed by taskId -> boolean
+        schedules: JSON.parse(JSON.stringify(DEFAULT_SCHEDULES)),
+        dsaProblems: JSON.parse(JSON.stringify(DEFAULT_DSA_PROBLEMS)),
+        trackContent: JSON.parse(JSON.stringify(DEFAULT_TRACK_CONTENT)),
+        sessionLogs: [],
+        activeTimer: {
+          taskId: null,
+          dayMode: null,
+          startedAtMs: null
+        },
+        pomodoro: {
+          preset: '50-10',
+          workMinutes: 50,
+          breakMinutes: 10,
+          phase: 'work',
+          remainingSeconds: 50 * 60,
+          running: false,
+          lastTickMs: null,
+          soundMuted: false,
+          completedToday: 0
+        },
+        streakDays: {}
+      };
+
+      state.streakDays[getDateKey(new Date())] = false;
+
+      let audioCtx = null;
+      function playAlarmChime(isTest) {
+        if (state.pomodoro.soundMuted && !isTest) return;
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          if (!audioCtx) audioCtx = new Ctx();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+
+          const now = audioCtx.currentTime;
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach(function (freq, idx) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.14);
+            gain.gain.setValueAtTime(0.001, now + idx * 0.14);
+            gain.gain.exponentialRampToValueAtTime(0.18, now + idx * 0.14 + 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.14 + 0.75);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.14);
+            osc.stop(now + idx * 0.14 + 0.8);
+          });
+        } catch (err) {
+          // Ignore audio context restrictions
+        }
+      }
+
+      function loadState(savedState) {
+        try {
+          let parsed = savedState;
+          if (parsed === undefined) {
+            const raw =
+              localStorage.getItem(STORAGE_KEY) ||
+              localStorage.getItem('lifeos_v02_state_2026') ||
+              localStorage.getItem('lifeos_v01_state_2026');
+            parsed = raw ? JSON.parse(raw) : null;
+          }
+          if (!parsed || !parsed.schedules) return false;
+
+          state.dayMode = parsed.dayMode || detectDefaultDayMode();
+          state.activeView = parsed.activeView || 'schedule';
+          state.categoryFilter = parsed.categoryFilter || 'all';
+          state.currentTopic = parsed.currentTopic || 'Choose a learning topic';
+          state.expandedTaskIds = parsed.expandedTaskIds || {};
+          state.schedules = parsed.schedules;
+          state.dsaProblems = Array.isArray(parsed.dsaProblems) ? parsed.dsaProblems : DEFAULT_DSA_PROBLEMS;
+          state.trackContent = parsed.trackContent
+            ? Object.assign({}, DEFAULT_TRACK_CONTENT, parsed.trackContent)
+            : JSON.parse(JSON.stringify(DEFAULT_TRACK_CONTENT));
+          state.sessionLogs = Array.isArray(parsed.sessionLogs) ? parsed.sessionLogs : [];
+          state.activeTimer = parsed.activeTimer || { taskId: null, dayMode: null, startedAtMs: null };
+          if (parsed.pomodoro) {
+            state.pomodoro = Object.assign({}, state.pomodoro, parsed.pomodoro);
+          }
+          if (parsed.streakDays && typeof parsed.streakDays === 'object') {
+            state.streakDays = parsed.streakDays;
+          }
+          return true;
+        } catch (err) {
+          console.error('Could not load saved LifeOS state:', err);
+          return false;
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          updateSyncStatus('Saved');
+        } catch (err) {
+          console.error('Could not save LifeOS to this browser:', err);
+          updateSyncStatus('Save failed — export a backup', true);
+        }
+      }
+
+      function showToast(msg) {
+        const el = document.getElementById('toastNotification');
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        clearTimeout(el._hideTimer);
+        el._hideTimer = setTimeout(function () {
+          el.classList.add('hidden');
+        }, 3200);
+      }
+
+      function formatHMS(totalSeconds) {
+        const sec = Math.max(0, Math.floor(totalSeconds));
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+        return pad(h) + ':' + pad(m) + ':' + pad(s);
+      }
+
+      function formatMMSS(totalSeconds) {
+        const sec = Math.max(0, Math.floor(totalSeconds));
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+        return pad(m) + ':' + pad(s);
+      }
+
+      function formatHumanDuration(totalSeconds) {
+        const sec = Math.max(0, Math.floor(totalSeconds));
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        if (h > 0) {
+          return h + 'h ' + (m < 10 ? '0' + m : m) + 'm ' + (s < 10 ? '0' + s : s) + 's';
+        }
+        return m + 'm ' + (s < 10 ? '0' + s : s) + 's';
+      }
+
+      function getTaskLiveSeconds(task, mode) {
+        let base = task.elapsedSeconds || 0;
+        if (
+          state.activeTimer.taskId === task.id &&
+          state.activeTimer.dayMode === mode &&
+          state.activeTimer.startedAtMs
+        ) {
+          const delta = Math.max(0, Math.floor((Date.now() - state.activeTimer.startedAtMs) / 1000));
+          base += delta;
+        }
+        return base;
+      }
+
+      function findTask(dayMode, taskId) {
+        const list = state.schedules[dayMode] || [];
+        for (let i = 0; i < list.length; i++) {
+          if (list[i].id === taskId) return list[i];
+        }
+        return null;
+      }
+
+      function getTrackForTask(task) {
+        const key = task.category || 'Life & Routine';
+        if (!state.trackContent[key]) {
+          state.trackContent[key] = {
+            subtitle: key + ' Progress & Roadmap',
+            notes: '',
+            items: []
+          };
+        }
+        return state.trackContent[key];
+      }
+
+      function setPomodoroPreset(presetKey) {
+        state.pomodoro.preset = presetKey;
+        if (presetKey === '25-5') {
+          state.pomodoro.workMinutes = 25;
+          state.pomodoro.breakMinutes = 5;
+        } else if (presetKey === '50-10') {
+          state.pomodoro.workMinutes = 50;
+          state.pomodoro.breakMinutes = 10;
+        } else if (presetKey === '45-0') {
+          state.pomodoro.workMinutes = 45;
+          state.pomodoro.breakMinutes = 5;
+        }
+        state.pomodoro.phase = 'work';
+        state.pomodoro.remainingSeconds = state.pomodoro.workMinutes * 60;
+        state.pomodoro.lastTickMs = state.pomodoro.running ? Date.now() : null;
+        saveState();
+        renderPomodoroBar();
+      }
+
+      function togglePomodoroRunning() {
+        state.pomodoro.running = !state.pomodoro.running;
+        state.pomodoro.lastTickMs = state.pomodoro.running ? Date.now() : null;
+        saveState();
+        renderPomodoroBar();
+      }
+
+      function switchPomodoroPhase() {
+        if (state.pomodoro.phase === 'work') {
+          state.pomodoro.phase = 'break';
+          state.pomodoro.remainingSeconds = (state.pomodoro.breakMinutes || 5) * 60;
+        } else {
+          state.pomodoro.phase = 'work';
+          state.pomodoro.remainingSeconds = (state.pomodoro.workMinutes || 50) * 60;
+        }
+        state.pomodoro.lastTickMs = state.pomodoro.running ? Date.now() : null;
+        saveState();
+        renderPomodoroBar();
+      }
+
+      function resetPomodoroTimer() {
+        state.pomodoro.running = false;
+        state.pomodoro.lastTickMs = null;
+        state.pomodoro.remainingSeconds =
+          (state.pomodoro.phase === 'work' ? state.pomodoro.workMinutes : state.pomodoro.breakMinutes) * 60;
+        saveState();
+        renderPomodoroBar();
+      }
+
+      function renderPomodoroBar() {
+        document.querySelectorAll('.pomo-preset-btn').forEach(function (btn) {
+          const p = btn.getAttribute('data-pomo-preset');
+          if (p === state.pomodoro.preset) {
+            btn.className = 'pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition bg-indigo-600 text-white';
+          } else {
+            btn.className = 'pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition text-slate-400 hover:text-white';
+          }
+        });
+
+        const phaseBadge = document.getElementById('pomoPhaseBadge');
+        if (state.pomodoro.phase === 'work') {
+          phaseBadge.textContent = 'Focus Sprint (' + state.pomodoro.workMinutes + 'm)';
+          phaseBadge.className = 'rounded-md bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[11px] font-semibold text-indigo-300';
+        } else {
+          phaseBadge.textContent = 'Recovery Break (' + state.pomodoro.breakMinutes + 'm)';
+          phaseBadge.className = 'rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-300';
+        }
+
+        const display = document.getElementById('pomoCountdownDisplay');
+        display.textContent = formatMMSS(state.pomodoro.remainingSeconds);
+
+        const toggleBtn = document.getElementById('pomoToggleBtn');
+        if (state.pomodoro.running) {
+          toggleBtn.textContent = 'Pause Pomo';
+          toggleBtn.className = 'rounded-lg bg-amber-500 hover:bg-amber-400 px-2.5 py-1 text-[11px] font-bold text-slate-950 transition';
+        } else {
+          toggleBtn.textContent = 'Start Pomo';
+          toggleBtn.className = 'rounded-lg bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1 text-[11px] font-semibold text-white transition';
+        }
+
+        const muteBtn = document.getElementById('pomoMuteBtn');
+        muteBtn.textContent = state.pomodoro.soundMuted ? '🔇 Muted' : '🔊 Sound On';
+      }
+
+      function stopActiveTimer(reasonLabel) {
+        if (!state.activeTimer.taskId || !state.activeTimer.startedAtMs) return;
+        const task = findTask(state.activeTimer.dayMode, state.activeTimer.taskId);
+        const now = Date.now();
+        const deltaSec = Math.max(1, Math.floor((now - state.activeTimer.startedAtMs) / 1000));
+        if (task) {
+          task.elapsedSeconds = (task.elapsedSeconds || 0) + deltaSec;
+          task.sessions = (task.sessions || 0) + 1;
+          const startDate = new Date(state.activeTimer.startedAtMs);
+          const endDate = new Date(now);
+          const fmtTime = function (d) {
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          };
+          state.sessionLogs.unshift({
+            id: 'log-' + now,
+            taskTitle: task.title,
+            category: task.category,
+            timeRange: fmtTime(startDate) + ' – ' + fmtTime(endDate),
+            durationSec: deltaSec,
+            reason: reasonLabel || 'Paused for break'
+          });
+          if (state.sessionLogs.length > 60) {
+            state.sessionLogs.length = 60;
+          }
+        }
+        state.activeTimer = { taskId: null, dayMode: null, startedAtMs: null };
+        state.pomodoro.running = false;
+        state.pomodoro.lastTickMs = null;
+        saveState();
+      }
+
+      function toggleTaskTimer(dayMode, taskId) {
+        const isCurrentlyActive =
+          state.activeTimer.taskId === taskId && state.activeTimer.dayMode === dayMode;
+
+        if (isCurrentlyActive) {
+          const task = findTask(dayMode, taskId);
+          stopActiveTimer('Break / Paused');
+          showToast('Paused "' + (task ? task.title : 'Task') + '" — session time logged.');
+        } else {
+          if (state.activeTimer.taskId) {
+            stopActiveTimer('Switched task');
+          }
+          const task = findTask(dayMode, taskId);
+          if (!task) return;
+          state.activeTimer = {
+            taskId: taskId,
+            dayMode: dayMode,
+            startedAtMs: Date.now()
+          };
+          // Automatically expand the inside-task content drawer so the user sees Achieved vs Remaining immediately!
+          state.expandedTaskIds[taskId] = true;
+
+          if (task.category === 'AI & LifeOS') {
+            setPomodoroPreset('45-0');
+          } else if (task.category === 'DSA & Scaler' && state.pomodoro.preset === '45-0') {
+            setPomodoroPreset('50-10');
+          }
+          state.pomodoro.running = true;
+          state.pomodoro.lastTickMs = Date.now();
+          saveState();
+          showToast('Started "' + task.title + '" & opened task roadmap');
+        }
+        renderAll();
+      }
+
+      function toggleTaskDrawerOnly(taskId) {
+        state.expandedTaskIds[taskId] = !state.expandedTaskIds[taskId];
+        saveState();
+        renderScheduleList();
+      }
+
+      function toggleTaskComplete(dayMode, taskId) {
+        const task = findTask(dayMode, taskId);
+        if (!task) return;
+        if (
+          !task.completed &&
+          state.activeTimer.taskId === taskId &&
+          state.activeTimer.dayMode === dayMode
+        ) {
+          stopActiveTimer('Completed task');
+        }
+        task.completed = !task.completed;
+        saveState();
+        showToast(task.completed ? 'Marked "' + task.title + '" complete!' : 'Reopened "' + task.title + '"');
+        renderAll();
+      }
+
+      function adjustTaskTime(dayMode, taskId, deltaSeconds) {
+        const task = findTask(dayMode, taskId);
+        if (!task) return;
+        task.elapsedSeconds = Math.max(0, (task.elapsedSeconds || 0) + deltaSeconds);
+        saveState();
+        renderAll();
+      }
+
+      function deleteTask(dayMode, taskId) {
+        if (state.activeTimer.taskId === taskId && state.activeTimer.dayMode === dayMode) {
+          stopActiveTimer('Deleted task');
+        }
+        state.schedules[dayMode] = (state.schedules[dayMode] || []).filter(function (t) {
+          return t.id !== taskId;
+        });
+        saveState();
+        renderAll();
+        showToast('Removed task from schedule');
+      }
+
+      function openTaskModalForEdit(dayMode, taskId) {
+        const task = findTask(dayMode, taskId);
+        if (!task) return;
+        document.getElementById('taskModalHeading').textContent = 'Edit Schedule Block';
+        document.getElementById('saveTaskSubmitBtn').textContent = 'Save Changes';
+        document.getElementById('editingTaskId').value = task.id;
+        document.getElementById('customTaskTitle').value = task.title;
+        document.getElementById('customTaskWindow').value = task.timeWindow;
+        document.getElementById('customTaskMinutes').value = task.targetMinutes || 60;
+        document.getElementById('customTaskCategory').value = task.category;
+        document.getElementById('customTaskDesc').value = task.desc || '';
+
+        const modal = document.getElementById('addTaskModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function openTaskModalForAdd() {
+        document.getElementById('taskModalHeading').textContent = 'Add Custom Task to Current Schedule';
+        document.getElementById('saveTaskSubmitBtn').textContent = 'Add to Schedule';
+        document.getElementById('customTaskForm').reset();
+        document.getElementById('editingTaskId').value = '';
+        document.getElementById('customTaskMinutes').value = 45;
+
+        const modal = document.getElementById('addTaskModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      function checkAndUpdateAutoStreak(dsaSec, completedCount) {
+        const todayKey = getDateKey(new Date());
+        if (dsaSec >= 90 * 60 || completedCount >= 4) {
+          if (!state.streakDays[todayKey]) {
+            state.streakDays[todayKey] = true;
+            saveState();
+          }
+        }
+      }
+
+      function renderStreakSection() {
+        const strip = document.getElementById('sevenDayStrip');
+        strip.innerHTML = '';
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const today = new Date();
+        const todayKey = getDateKey(today);
+
+        for (let offset = 6; offset >= 0; offset--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - offset);
+          const key = getDateKey(d);
+          const isDone = !!state.streakDays[key];
+          const isToday = offset === 0;
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className =
+            'flex flex-col items-center justify-center rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold transition ' +
+            (isDone
+              ? 'bg-amber-500/20 border-amber-500/50 text-amber-200'
+              : isToday
+              ? 'bg-slate-800 border-indigo-500/50 text-slate-300'
+              : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700');
+          btn.title = 'Click to toggle streak completion for ' + key;
+          btn.innerHTML = `
+            <span class="text-[10px] opacity-80">${dayNames[d.getDay()]}</span>
+            <span class="mt-0.5 text-xs">${isDone ? '🔥' : '·'}</span>
+          `;
+          btn.addEventListener('click', function () {
+            state.streakDays[key] = !state.streakDays[key];
+            saveState();
+            renderStreakSection();
+          });
+          strip.appendChild(btn);
+        }
+
+        let streak = 0;
+        for (let i = 0; i < 365; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          const k = getDateKey(d);
+          if (state.streakDays[k]) {
+            streak++;
+          } else {
+            if (i === 0) continue;
+            break;
+          }
+        }
+
+        document.getElementById('streakCountHeading').textContent =
+          streak + (streak === 1 ? ' Day Active Streak' : ' Days Active Streak');
+
+        const todayDone = !!state.streakDays[todayKey];
+        const todayBadge = document.getElementById('streakTodayBadge');
+        const toggleTodayBtn = document.getElementById('toggleTodayStreakBtn');
+        if (todayDone) {
+          todayBadge.textContent = '✓ Today’s Streak Locked In!';
+          todayBadge.className = 'rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300';
+          toggleTodayBtn.textContent = '✓ Today Logged';
+        } else {
+          todayBadge.textContent = 'Auto-locks at 90m+ DSA or 4+ blocks done';
+          todayBadge.className = 'rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300';
+          toggleTodayBtn.textContent = '✓ Mark Today Done';
+        }
+      }
+
+      function renderActiveBanner() {
+        const dot = document.getElementById('bannerStatusDot');
+        const statusLabel = document.getElementById('bannerStatusLabel');
+        const catBadge = document.getElementById('bannerCategoryBadge');
+        const titleEl = document.getElementById('bannerTaskTitle');
+        const timerEl = document.getElementById('bannerLiveTimer');
+        const targetSub = document.getElementById('bannerTargetSubtext');
+        const controls = document.getElementById('bannerControls');
+        const progressBar = document.getElementById('bannerProgressBar');
+
+        if (state.activeTimer.taskId && state.activeTimer.dayMode) {
+          const task = findTask(state.activeTimer.dayMode, state.activeTimer.taskId);
+          if (task) {
+            const liveSec = getTaskLiveSeconds(task, state.activeTimer.dayMode);
+            const targetSec = (task.targetMinutes || 60) * 60;
+            const pct = Math.min(100, Math.round((liveSec / targetSec) * 100));
+
+            dot.className = 'h-3 w-3 rounded-full bg-emerald-400 animate-ping shrink-0';
+            statusLabel.textContent = 'LIVE FOCUS SESSION RUNNING';
+            statusLabel.className = 'text-xs font-bold uppercase tracking-wider text-emerald-400';
+
+            catBadge.textContent = task.category;
+            catBadge.classList.remove('hidden');
+
+            titleEl.textContent = task.title + ' (' + task.timeWindow + ')';
+            timerEl.textContent = formatHMS(liveSec);
+            timerEl.className = 'mono-timer text-xl sm:text-2xl font-bold text-emerald-300';
+            targetSub.textContent = 'Target: ' + task.targetMinutes + 'm (' + pct + '% of planned block)';
+
+            controls.classList.remove('hidden');
+            controls.classList.add('flex');
+            progressBar.style.width = pct + '%';
+            return;
+          }
+        }
+
+        dot.className = 'h-3 w-3 rounded-full bg-slate-600 shrink-0';
+        statusLabel.textContent = 'IDLE / ON BREAK — CLICK ANY SCHEDULE CARD BELOW TO START TRACKING';
+        statusLabel.className = 'text-xs font-semibold uppercase tracking-wider text-slate-400';
+        catBadge.classList.add('hidden');
+        titleEl.textContent = 'No active task running right now';
+        timerEl.textContent = '00:00:00';
+        timerEl.className = 'mono-timer text-xl sm:text-2xl font-bold text-slate-400';
+        targetSub.textContent = 'Click a task to start timer & open its learning roadmap';
+        controls.classList.add('hidden');
+        controls.classList.remove('flex');
+        progressBar.style.width = '0%';
+      }
+
+      function renderKPIs() {
+        const list = state.schedules[state.dayMode] || [];
+        let totalSec = 0;
+        let dsaSec = 0;
+        let aiSec = 0;
+        let completedCount = 0;
+        let totalSessions = 0;
+
+        for (let i = 0; i < list.length; i++) {
+          const t = list[i];
+          const sec = getTaskLiveSeconds(t, state.dayMode);
+          totalSec += sec;
+          totalSessions += (t.sessions || 0);
+          if (t.category === 'DSA & Scaler') dsaSec += sec;
+          if (t.category === 'AI & LifeOS') aiSec += sec;
+          if (t.completed) completedCount++;
+        }
+
+        checkAndUpdateAutoStreak(dsaSec, completedCount);
+
+        document.getElementById('kpiTotalTracked').textContent = formatHumanDuration(totalSec);
+        document.getElementById('kpiTotalSub').textContent =
+          totalSessions + ' bursts • ' + (state.pomodoro.completedToday || 0) + ' 🍅 Pomodoros';
+
+        document.getElementById('kpiDsaTracked').textContent = formatHumanDuration(dsaSec);
+        const dsaTargetMin = list
+          .filter(function (x) { return x.category === 'DSA & Scaler'; })
+          .reduce(function (acc, x) { return acc + (x.targetMinutes || 0); }, 0);
+        document.getElementById('kpiDsaSub').textContent =
+          state.currentTopic + ' (' + Math.round((dsaTargetMin / 60) * 10) / 10 + 'h planned)';
+
+        document.getElementById('kpiAiTracked').textContent = formatHumanDuration(aiSec);
+        const aiBadge = document.getElementById('kpiAiBadge');
+        const aiSub = document.getElementById('kpiAiSub');
+        const aiTrack = state.trackContent['AI & LifeOS'] || { items: [] };
+        const aiDoneCount = aiTrack.items.filter(function (i) { return i.done; }).length;
+        const aiRemCount = aiTrack.items.filter(function (i) { return !i.done; }).length;
+
+        if (aiSec > 45 * 60) {
+          aiBadge.textContent = 'Over 45m Cap!';
+          aiBadge.className = 'rounded-md bg-rose-500/20 px-2 py-0.5 text-[11px] font-semibold text-rose-300';
+          aiSub.textContent = 'Time-box alert: Switch back to DSA!';
+          aiSub.className = 'mt-1 text-xs text-rose-400 font-medium';
+        } else {
+          aiBadge.textContent = aiDoneCount + ' Done / ' + aiRemCount + ' Left';
+          aiBadge.className = 'rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold text-purple-400';
+          aiSub.textContent = Math.max(0, 45 - Math.floor(aiSec / 60)) + 'm left in daily 45m cap';
+          aiSub.className = 'mt-1 text-xs text-slate-400';
+        }
+
+        const pctDone = list.length ? Math.round((completedCount / list.length) * 100) : 0;
+        document.getElementById('kpiDonePercent').textContent = pctDone + '%';
+        document.getElementById('kpiBlocksCompleted').textContent = completedCount + ' / ' + list.length;
+
+        const solvedDp = state.dsaProblems.filter(function (p) { return p.status === 'Solved'; }).length;
+        document.getElementById('kpiDpSolvedSub').textContent =
+          'Problems Solved: ' + solvedDp + ' / ' + state.dsaProblems.length;
+      }
+
+      function renderScheduleList() {
+        const container = document.getElementById('scheduleListContainer');
+        const list = state.schedules[state.dayMode] || [];
+        const now = new Date();
+        const currentHourFloat = now.getHours() + now.getMinutes() / 60;
+
+        const filtered = list.filter(function (item) {
+          if (state.categoryFilter === 'all') return true;
+          return item.category === state.categoryFilter;
+        });
+
+        container.innerHTML = '';
+
+        filtered.forEach(function (task) {
+          const isRunning =
+            state.activeTimer.taskId === task.id &&
+            state.activeTimer.dayMode === state.dayMode;
+          const isExpanded = !!state.expandedTaskIds[task.id];
+          const liveSec = getTaskLiveSeconds(task, state.dayMode);
+          const targetSec = (task.targetMinutes || 60) * 60;
+          const pct = Math.min(100, Math.round((liveSec / targetSec) * 100));
+          const styleObj = CATEGORY_STYLES[task.category] || CATEGORY_STYLES['Life & Routine'];
+          const isCurrentTimeSlot =
+            typeof task.startHour === 'number' &&
+            typeof task.endHour === 'number' &&
+            currentHourFloat >= task.startHour &&
+            currentHourFloat < task.endHour;
+
+          const track = getTrackForTask(task);
+          const achievedItems = track.items.filter(function (item) { return item.done; });
+          const remainingItems = track.items.filter(function (item) { return !item.done; });
+          const totalMilestones = track.items.length;
+          const milestonePct = totalMilestones > 0 ? Math.round((achievedItems.length / totalMilestones) * 100) : 0;
+
+          const card = document.createElement('div');
+          let baseBorder = 'border-slate-800/90 bg-slate-900/80 hover:border-slate-700';
+          if (isRunning) {
+            baseBorder = 'active-task-card border-indigo-500 bg-indigo-950/25';
+          } else if (task.completed) {
+            baseBorder = 'border-emerald-800/50 bg-slate-900/40 opacity-85';
+          } else if (isCurrentTimeSlot) {
+            baseBorder = 'border-indigo-500/50 bg-slate-900/95';
+          }
+
+          card.className = 'group relative rounded-2xl border p-4 transition-all ' + baseBorder;
+
+          const achievedHtml = achievedItems.length
+            ? achievedItems
+                .map(function (it) {
+                  return `
+                    <div class="flex items-start justify-between gap-2 rounded-xl bg-emerald-950/30 border border-emerald-500/25 px-3 py-2 text-xs">
+                      <label class="flex items-start gap-2.5 cursor-pointer select-none flex-1">
+                        <input type="checkbox" checked data-toggle-milestone="${it.id}" data-cat-key="${task.category}" class="mt-0.5 rounded border-emerald-500/50 bg-slate-900 text-emerald-500 focus:ring-0 cursor-pointer" />
+                        <span class="text-emerald-100 leading-relaxed">${it.text}</span>
+                      </label>
+                      <button type="button" data-del-milestone="${it.id}" data-cat-key="${task.category}" class="text-slate-500 hover:text-rose-400 px-1" title="Remove item">✕</button>
+                    </div>
+                  `;
+                })
+                .join('')
+            : '<div class="rounded-xl border border-dashed border-slate-800 p-3 text-xs text-slate-500">No completed items logged yet. Check off items from Remaining or add what you learned below!</div>';
+
+          const remainingHtml = remainingItems.length
+            ? remainingItems
+                .map(function (it) {
+                  return `
+                    <div class="flex items-start justify-between gap-2 rounded-xl bg-slate-900/90 border border-slate-800 px-3 py-2 text-xs hover:border-indigo-500/40 transition">
+                      <label class="flex items-start gap-2.5 cursor-pointer select-none flex-1">
+                        <input type="checkbox" data-toggle-milestone="${it.id}" data-cat-key="${task.category}" class="mt-0.5 rounded border-slate-600 bg-slate-950 text-indigo-500 focus:ring-0 cursor-pointer" />
+                        <span class="text-slate-200 leading-relaxed">${it.text}</span>
+                      </label>
+                      <button type="button" data-del-milestone="${it.id}" data-cat-key="${task.category}" class="text-slate-500 hover:text-rose-400 px-1" title="Remove item">✕</button>
+                    </div>
+                  `;
+                })
+                .join('')
+            : '<div class="rounded-xl border border-dashed border-slate-800 p-3 text-xs text-emerald-400">All queued milestones completed! Add your next learning goal below.</div>';
+
+          card.innerHTML = `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none" data-card-header="${task.id}">
+              <div class="flex items-start gap-3.5 min-w-0">
+                <!-- Play / Pause Visual Indicator Button -->
+                <button type="button" data-action="toggle-timer" data-id="${task.id}"
+                  class="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
+                    isRunning
+                      ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
+                      : task.completed
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800 text-slate-200 group-hover:bg-indigo-600 group-hover:text-white'
+                  }"
+                  title="${isRunning ? 'Click to pause for a break' : 'Click to start timer and open content'}">
+                  ${
+                    isRunning
+                      ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 5h4v14H6V5zm8 0h4v14h-4V5z"/></svg>'
+                      : '<svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+                  }
+                </button>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="mono-timer text-xs font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-md px-2 py-0.5">${task.timeWindow}</span>
+                    <span class="rounded-md border px-2 py-0.5 text-[11px] font-semibold ${styleObj.badge}">${task.category}</span>
+                    ${
+                      task.category === 'DSA & Scaler'
+                        ? '<span class="rounded-md bg-emerald-950 border border-emerald-700/40 px-2 py-0.5 text-[10px] font-medium text-emerald-300">' + state.currentTopic + '</span>'
+                        : ''
+                    }
+                    <span class="rounded-md bg-slate-800/90 border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+                      ✓ ${achievedItems.length} Achieved • ${remainingItems.length} Remaining
+                    </span>
+                    ${
+                      isCurrentTimeSlot
+                        ? '<span class="rounded-md bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300">Current Slot</span>'
+                        : ''
+                    }
+                    ${
+                      isRunning
+                        ? '<span class="rounded-md bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">Active — Click to Take Break</span>'
+                        : ''
+                    }
+                  </div>
+
+                  <h3 class="mt-1.5 text-sm sm:text-base font-bold ${
+                    task.completed ? 'line-through text-slate-400' : 'text-white'
+                  }">${task.title}</h3>
+                  <p class="mt-0.5 text-xs text-slate-400 leading-relaxed">${task.desc || ''}</p>
+                </div>
+              </div>
+
+              <!-- Right Side Timer Readout & Quick Controls -->
+              <div class="flex sm:flex-col items-center sm:items-end justify-between gap-2 pl-14 sm:pl-0 shrink-0">
+                <div class="text-left sm:text-right">
+                  <div data-live-timer="${task.id}" class="mono-timer text-base sm:text-lg font-bold ${
+                    isRunning ? 'text-emerald-300' : liveSec > 0 ? 'text-white' : 'text-slate-400'
+                  }">${formatHMS(liveSec)}</div>
+                  <div class="text-[11px] text-slate-400">
+                    Target: ${task.targetMinutes}m • ${task.sessions || 0} ${(task.sessions === 1) ? 'session' : 'sessions'}
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <button type="button" data-action="toggle-drawer" data-id="${task.id}"
+                    class="rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
+                      isExpanded
+                        ? 'bg-indigo-600 border-indigo-500 text-white'
+                        : 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/30 text-indigo-300'
+                    }"
+                    title="Open or close what you have learned/achieved vs what is remaining">
+                    📖 ${isExpanded ? 'Hide Content' : 'Content (' + achievedItems.length + '/' + totalMilestones + ')'}
+                  </button>
+                  <button type="button" data-action="edit-task" data-id="${task.id}"
+                    class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition"
+                    title="Edit task name, time window, or notes">Edit</button>
+                  <button type="button" data-action="add-5m" data-id="${task.id}"
+                    class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition"
+                    title="Add 5 minutes manually">+5m</button>
+                  <button type="button" data-action="sub-5m" data-id="${task.id}"
+                    class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition"
+                    title="Subtract 5 minutes">-5m</button>
+                  <button type="button" data-action="toggle-done" data-id="${task.id}"
+                    class="rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
+                      task.completed
+                        ? 'bg-emerald-600/30 border-emerald-500/50 text-emerald-200'
+                        : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                    }">
+                    ${task.completed ? '✓ Done' : 'Mark Done'}
+                  </button>
+                  <button type="button" data-action="delete-task" data-id="${task.id}"
+                    class="rounded-lg bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 px-2 py-1 text-[11px] text-slate-400 hover:text-rose-300 transition"
+                    title="Remove this block">✕</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress Bar inside Card -->
+            <div class="mt-3 h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+              <div data-live-bar="${task.id}" class="h-full ${styleObj.bar} transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+
+            <!-- EXPANDABLE INSIDE-TASK CONTENT & LEARNING ROADMAP DRAWER -->
+            <div class="${isExpanded ? 'block' : 'hidden'} mt-4 pt-4 border-t border-slate-800/90 space-y-4 cursor-default">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-950/90 rounded-xl p-3 border border-slate-800/80">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Inside Task Workspace: ${task.category}</span>
+                    <span class="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                      ${milestonePct}% Complete (${achievedItems.length} Achieved / ${remainingItems.length} Remaining)
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-0.5">${track.subtitle}</p>
+                </div>
+              </div>
+
+              <!-- Two Columns: Learned/Achieved Till Now vs. Remaining / Up Next -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Column 1: Achieved / Learned Till Now -->
+                <div class="rounded-xl bg-slate-950/70 border border-emerald-500/20 p-3.5 space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <span>✓ Learned & Achieved Till Now (${achievedItems.length})</span>
+                    </h4>
+                    <span class="text-[11px] text-slate-500">Uncheck to move back</span>
+                  </div>
+                  <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    ${achievedHtml}
+                  </div>
+                </div>
+
+                <!-- Column 2: Remaining / Up Next -->
+                <div class="rounded-xl bg-slate-950/70 border border-indigo-500/25 p-3.5 space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                      <span>⏳ What's Remaining / Up Next (${remainingItems.length})</span>
+                    </h4>
+                    <span class="text-[11px] text-slate-500">Check box when achieved</span>
+                  </div>
+                  <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    ${remainingHtml}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add New Milestone / Topic Item + Persistent Learning Notes -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
+                <form data-milestone-form="${task.id}" data-cat-key="${task.category}" class="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-slate-950/90 border border-slate-800 rounded-xl p-2.5">
+                  <input type="text" name="milestoneText" required placeholder="Add new topic, milestone, or achievement..." class="w-full flex-1 rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+                  <select name="milestoneState" class="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1.5 text-xs text-slate-200 focus:border-indigo-500 focus:outline-none">
+                    <option value="remaining">Add to Remaining</option>
+                    <option value="achieved">Add to Achieved</option>
+                  </select>
+                  <button type="submit" class="rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white shrink-0 transition">
+                    + Add
+                  </button>
+                </form>
+
+                <div class="flex items-center gap-2 bg-slate-950/90 border border-slate-800 rounded-xl p-2.5">
+                  <span class="text-[11px] font-semibold text-slate-400 shrink-0">📝 Notes:</span>
+                  <input type="text" data-track-note="${task.category}" value="${(track.notes || '').replace(/"/g, '&quot;')}" placeholder="Jot down key takeaways, links, or where you left off..." class="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Header click handler (starts/pauses timer + opens content, or handles action buttons)
+          const headerEl = card.querySelector('[data-card-header="' + task.id + '"]');
+          headerEl.addEventListener('click', function (e) {
+            const actionBtn = e.target.closest('button[data-action]');
+            if (actionBtn) {
+              e.stopPropagation();
+              const act = actionBtn.getAttribute('data-action');
+              const id = actionBtn.getAttribute('data-id');
+              if (act === 'toggle-timer') toggleTaskTimer(state.dayMode, id);
+              else if (act === 'toggle-drawer') toggleTaskDrawerOnly(id);
+              else if (act === 'toggle-done') toggleTaskComplete(state.dayMode, id);
+              else if (act === 'add-5m') adjustTaskTime(state.dayMode, id, 300);
+              else if (act === 'sub-5m') adjustTaskTime(state.dayMode, id, -300);
+              else if (act === 'edit-task') openTaskModalForEdit(state.dayMode, id);
+              else if (act === 'delete-task') deleteTask(state.dayMode, id);
+              return;
+            }
+            toggleTaskTimer(state.dayMode, task.id);
+          });
+
+          // Checkbox toggles inside drawer (Remaining <-> Achieved)
+          card.querySelectorAll('[data-toggle-milestone]').forEach(function (checkbox) {
+            checkbox.addEventListener('change', function (e) {
+              e.stopPropagation();
+              const itemId = checkbox.getAttribute('data-toggle-milestone');
+              const catKey = checkbox.getAttribute('data-cat-key');
+              const tr = state.trackContent[catKey];
+              if (!tr) return;
+              const target = tr.items.find(function (x) { return x.id === itemId; });
+              if (target) {
+                target.done = checkbox.checked;
+                saveState();
+                renderScheduleList();
+                renderKPIs();
+                showToast(target.done ? '✓ Moved to Learned & Achieved!' : 'Moved back to Remaining');
+              }
+            });
+          });
+
+          // Delete milestone item inside drawer
+          card.querySelectorAll('[data-del-milestone]').forEach(function (delBtn) {
+            delBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              const itemId = delBtn.getAttribute('data-del-milestone');
+              const catKey = delBtn.getAttribute('data-cat-key');
+              const tr = state.trackContent[catKey];
+              if (!tr) return;
+              tr.items = tr.items.filter(function (x) { return x.id !== itemId; });
+              saveState();
+              renderScheduleList();
+              renderKPIs();
+            });
+          });
+
+          // Add milestone form inside drawer
+          const milestoneForm = card.querySelector('[data-milestone-form="' + task.id + '"]');
+          if (milestoneForm) {
+            milestoneForm.addEventListener('submit', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              const catKey = milestoneForm.getAttribute('data-cat-key');
+              const textInput = milestoneForm.querySelector('input[name="milestoneText"]');
+              const stateSelect = milestoneForm.querySelector('select[name="milestoneState"]');
+              const textVal = textInput.value.trim();
+              if (!textVal) return;
+              const isDone = stateSelect.value === 'achieved';
+              if (!state.trackContent[catKey]) {
+                state.trackContent[catKey] = { subtitle: catKey + ' Roadmap', notes: '', items: [] };
+              }
+              state.trackContent[catKey].items.push({
+                id: 'ms-' + Date.now(),
+                text: textVal,
+                done: isDone
+              });
+              textInput.value = '';
+              saveState();
+              renderScheduleList();
+              renderKPIs();
+              showToast(isDone ? 'Added to Learned & Achieved!' : 'Added to Remaining Queue!');
+            });
+          }
+
+          // Notes input inside drawer
+          const noteInput = card.querySelector('[data-track-note]');
+          if (noteInput) {
+            noteInput.addEventListener('input', function (e) {
+              const catKey = noteInput.getAttribute('data-track-note');
+              if (state.trackContent[catKey]) {
+                state.trackContent[catKey].notes = e.target.value;
+                saveState();
+              }
+            });
+          }
+
+          container.appendChild(card);
+        });
+      }
+
+      function renderDsaProblems() {
+        const topicInput = document.getElementById('activeTopicInput');
+        if (topicInput && document.activeElement !== topicInput) {
+          topicInput.value = state.currentTopic;
+        }
+        const topicLabel = document.getElementById('currentTopicLabel');
+        if (topicLabel) {
+          topicLabel.textContent = state.currentTopic;
+        }
+
+        const container = document.getElementById('dsaProblemList');
+        container.innerHTML = '';
+
+        state.dsaProblems.forEach(function (prob) {
+          const card = document.createElement('div');
+          const statusColors = {
+            'Todo': 'bg-slate-800 text-slate-300 border-slate-700',
+            'Attempted': 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+            'Solved': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+          };
+
+          card.className = 'rounded-2xl bg-slate-950/80 border border-slate-800 p-4 flex flex-col justify-between gap-3';
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-md bg-indigo-500/10 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-semibold uppercase text-indigo-300">${prob.type}</span>
+                  <span class="text-xs text-emerald-400 font-medium truncate">${prob.topic || state.currentTopic}</span>
+                </div>
+                <h4 class="mt-1.5 text-sm font-bold ${prob.status === 'Solved' ? 'line-through text-slate-400' : 'text-white'}">${prob.title}</h4>
+                <p class="mt-1 text-xs text-slate-400">${prob.notes || 'Dry-run approach and time/space complexity before coding.'}</p>
+              </div>
+              <button type="button" data-del-prob="${prob.id}" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-1" title="Remove problem">✕</button>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+              <span class="text-[11px] text-slate-400">Click status to update:</span>
+              <button type="button" data-cycle-prob="${prob.id}" class="rounded-lg border px-3 py-1 text-xs font-semibold transition ${statusColors[prob.status] || statusColors['Todo']}">
+                ${prob.status}
+              </button>
+            </div>
+          `;
+
+          card.querySelector('[data-cycle-prob]').addEventListener('click', function () {
+            const order = ['Todo', 'Attempted', 'Solved'];
+            const nextIdx = (order.indexOf(prob.status) + 1) % order.length;
+            prob.status = order[nextIdx];
+            saveState();
+            renderDsaProblems();
+            renderKPIs();
+          });
+
+          card.querySelector('[data-del-prob]').addEventListener('click', function () {
+            state.dsaProblems = state.dsaProblems.filter(function (p) { return p.id !== prob.id; });
+            saveState();
+            renderDsaProblems();
+            renderKPIs();
+          });
+
+          container.appendChild(card);
+        });
+      }
+
+      function renderAnalytics() {
+        const list = state.schedules[state.dayMode] || [];
+        const categories = ['DSA & Scaler', 'IAM Work', 'AI & LifeOS', 'Health & Gym', 'Life & Routine'];
+        const catContainer = document.getElementById('categoryBreakdownList');
+        catContainer.innerHTML = '';
+
+        categories.forEach(function (cat) {
+          const items = list.filter(function (i) { return i.category === cat; });
+          const plannedSec = items.reduce(function (acc, i) { return acc + (i.targetMinutes || 0) * 60; }, 0);
+          const actualSec = items.reduce(function (acc, i) { return acc + getTaskLiveSeconds(i, state.dayMode); }, 0);
+          const pct = plannedSec > 0 ? Math.min(100, Math.round((actualSec / plannedSec) * 100)) : 0;
+          const styleObj = CATEGORY_STYLES[cat] || CATEGORY_STYLES['Life & Routine'];
+
+          const row = document.createElement('div');
+          row.className = 'space-y-1.5';
+          row.innerHTML = `
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-200">${cat}</span>
+              <span class="mono-timer text-slate-400">
+                <strong class="text-white">${formatHumanDuration(actualSec)}</strong> / ${Math.round((plannedSec / 3600) * 10) / 10}h planned (${pct}%)
+              </span>
+            </div>
+            <div class="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full ${styleObj.bar} transition-all" style="width: ${pct}%"></div>
+            </div>
+          `;
+          catContainer.appendChild(row);
+        });
+
+        const logContainer = document.getElementById('sessionLogContainer');
+        logContainer.innerHTML = '';
+        if (!state.sessionLogs.length) {
+          logContainer.innerHTML = `
+            <div class="rounded-xl border border-dashed border-slate-800 p-6 text-center text-xs text-slate-400">
+              No work bursts logged yet today. Click any task in your schedule to start a timer, and click again when taking a break!
+            </div>
+          `;
+        } else {
+          state.sessionLogs.forEach(function (log) {
+            const item = document.createElement('div');
+            item.className = 'rounded-xl bg-slate-950/80 border border-slate-800/90 px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs';
+            item.innerHTML = `
+              <div class="min-w-0">
+                <div class="font-semibold text-slate-200 truncate">${log.taskTitle}</div>
+                <div class="text-[11px] text-slate-400">${log.timeRange} • ${log.category} • ${log.reason}</div>
+              </div>
+              <div class="mono-timer font-bold text-emerald-400 shrink-0">+${formatHumanDuration(log.durationSec)}</div>
+            `;
+            logContainer.appendChild(item);
+          });
+        }
+      }
+
+      function renderControlsState() {
+        document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
+          const mode = btn.getAttribute('data-daymode');
+          if (mode === state.dayMode) {
+            btn.className = 'day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition bg-indigo-600 text-white shadow';
+          } else {
+            btn.className = 'day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition text-slate-400 hover:text-white';
+          }
+        });
+
+        document.querySelectorAll('.view-tab-btn').forEach(function (btn) {
+          const v = btn.getAttribute('data-view');
+          if (v === state.activeView) {
+            btn.className = 'view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-slate-800 text-white border border-slate-700';
+          } else {
+            btn.className = 'view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white';
+          }
+        });
+
+        ['schedule', 'dsa', 'analytics'].forEach(function (v) {
+          const sec = document.getElementById('view-' + v);
+          if (sec) {
+            if (v === state.activeView) sec.classList.remove('hidden');
+            else sec.classList.add('hidden');
+          }
+        });
+
+        document.querySelectorAll('.cat-filter-btn').forEach(function (btn) {
+          const c = btn.getAttribute('data-cat');
+          if (c === state.categoryFilter) {
+            btn.className = 'cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-semibold transition bg-indigo-500/20 text-indigo-300 border border-indigo-500/40';
+          } else {
+            btn.className = 'cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200';
+          }
+        });
+      }
+
+      function renderAll() {
+        renderControlsState();
+        renderActiveBanner();
+        renderPomodoroBar();
+        renderStreakSection();
+        renderKPIs();
+        renderScheduleList();
+        renderDsaProblems();
+        renderAnalytics();
+      }
+
+      function tickEverySecond() {
+        const now = new Date();
+        const clockEl = document.getElementById('currentClockDisplay');
+        if (clockEl) {
+          clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        if (state.pomodoro.running) {
+          state.pomodoro.remainingSeconds = Math.max(0, (state.pomodoro.remainingSeconds || 0) - 1);
+          const pomoEl = document.getElementById('pomoCountdownDisplay');
+          if (pomoEl) pomoEl.textContent = formatMMSS(state.pomodoro.remainingSeconds);
+
+          if (state.pomodoro.remainingSeconds <= 0) {
+            playAlarmChime(false);
+            if (state.pomodoro.phase === 'work') {
+              state.pomodoro.completedToday = (state.pomodoro.completedToday || 0) + 1;
+              state.pomodoro.phase = 'break';
+              state.pomodoro.remainingSeconds = (state.pomodoro.breakMinutes || 5) * 60;
+              state.pomodoro.running = false;
+              showToast('🔔 Pomodoro Sprint Complete! Stand up, hydrate, and take a ' + (state.pomodoro.breakMinutes || 5) + 'm break.');
+            } else {
+              state.pomodoro.phase = 'work';
+              state.pomodoro.remainingSeconds = (state.pomodoro.workMinutes || 50) * 60;
+              state.pomodoro.running = false;
+              showToast('🔔 Break Over! Ready for your next focus sprint.');
+            }
+            saveState();
+            renderPomodoroBar();
+            renderKPIs();
+          }
+        }
+
+        if (state.activeTimer.taskId && state.activeTimer.dayMode) {
+          renderActiveBanner();
+          renderKPIs();
+          const task = findTask(state.activeTimer.dayMode, state.activeTimer.taskId);
+          if (task && state.dayMode === state.activeTimer.dayMode) {
+            const liveSec = getTaskLiveSeconds(task, state.dayMode);
+            const targetSec = (task.targetMinutes || 60) * 60;
+            const pct = Math.min(100, Math.round((liveSec / targetSec) * 100));
+            const timerNode = document.querySelector('[data-live-timer="' + task.id + '"]');
+            if (timerNode) timerNode.textContent = formatHMS(liveSec);
+            const barNode = document.querySelector('[data-live-bar="' + task.id + '"]');
+            if (barNode) barNode.style.width = pct + '%';
+          }
+        }
+      }
+
+      function initEvents() {
+        document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.dayMode = btn.getAttribute('data-daymode');
+            saveState();
+            renderAll();
+          });
+        });
+
+        document.querySelectorAll('.view-tab-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.activeView = btn.getAttribute('data-view');
+            saveState();
+            renderAll();
+          });
+        });
+
+        document.querySelectorAll('.cat-filter-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.categoryFilter = btn.getAttribute('data-cat');
+            saveState();
+            renderScheduleList();
+            renderControlsState();
+          });
+        });
+
+        document.querySelectorAll('.pomo-preset-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            setPomodoroPreset(btn.getAttribute('data-pomo-preset'));
+            showToast('Pomodoro set to ' + btn.textContent.trim());
+          });
+        });
+
+        document.getElementById('pomoToggleBtn').addEventListener('click', function () {
+          togglePomodoroRunning();
+        });
+
+        document.getElementById('pomoSwitchPhaseBtn').addEventListener('click', function () {
+          switchPomodoroPhase();
+        });
+
+        document.getElementById('pomoResetBtn').addEventListener('click', function () {
+          resetPomodoroTimer();
+          showToast('Pomodoro timer reset');
+        });
+
+        document.getElementById('pomoMuteBtn').addEventListener('click', function () {
+          state.pomodoro.soundMuted = !state.pomodoro.soundMuted;
+          saveState();
+          renderPomodoroBar();
+        });
+
+        document.getElementById('pomoTestChimeBtn').addEventListener('click', function () {
+          playAlarmChime(true);
+          showToast('🔔 Playing Pomodoro harmonic bell chime');
+        });
+
+        document.getElementById('toggleTodayStreakBtn').addEventListener('click', function () {
+          const todayKey = getDateKey(new Date());
+          state.streakDays[todayKey] = !state.streakDays[todayKey];
+          saveState();
+          renderStreakSection();
+          showToast(state.streakDays[todayKey] ? '🔥 Today’s streak marked complete!' : 'Unmarked today’s streak');
+        });
+
+        document.getElementById('editTopicQuickBtn').addEventListener('click', function () {
+          state.activeView = 'dsa';
+          saveState();
+          renderAll();
+          const input = document.getElementById('activeTopicInput');
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        });
+
+        document.getElementById('activeTopicInput').addEventListener('input', function (e) {
+          const val = e.target.value.trim();
+          state.currentTopic = val || 'DSA & System Design';
+          saveState();
+          document.getElementById('currentTopicLabel').textContent = state.currentTopic;
+          renderKPIs();
+          renderScheduleList();
+        });
+
+        document.querySelectorAll('.topic-preset-chip').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            state.currentTopic = chip.getAttribute('data-topic-preset');
+            saveState();
+            renderAll();
+            showToast('Switched active topic to "' + state.currentTopic + '"');
+          });
+        });
+
+        document.getElementById('bannerPauseBtn').addEventListener('click', function () {
+          if (state.activeTimer.taskId) {
+            toggleTaskTimer(state.activeTimer.dayMode, state.activeTimer.taskId);
+          }
+        });
+
+        document.getElementById('bannerCompleteBtn').addEventListener('click', function () {
+          if (state.activeTimer.taskId) {
+            toggleTaskComplete(state.activeTimer.dayMode, state.activeTimer.taskId);
+          }
+        });
+
+        document.getElementById('addProblemForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const input = document.getElementById('newProblemTitle');
+          const typeSelect = document.getElementById('newProblemType');
+          const title = input.value.trim();
+          if (!title) return;
+          state.dsaProblems.unshift({
+            id: 'dp-' + Date.now(),
+            title: title,
+            topic: state.currentTopic,
+            type: typeSelect.value,
+            status: 'Todo',
+            notes: 'Added under ' + state.currentTopic
+          });
+          input.value = '';
+          saveState();
+          renderDsaProblems();
+          renderKPIs();
+          showToast('Added "' + title + '" to ' + state.currentTopic);
+        });
+
+        const addTaskModal = document.getElementById('addTaskModal');
+        const closeAddModal = function () {
+          addTaskModal.classList.add('hidden');
+          addTaskModal.classList.remove('flex');
+        };
+        document.getElementById('openAddTaskModalBtn').addEventListener('click', openTaskModalForAdd);
+        document.getElementById('closeAddTaskModalBtn').addEventListener('click', closeAddModal);
+        document.getElementById('cancelAddTaskBtn').addEventListener('click', closeAddModal);
+
+        document.getElementById('customTaskForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const editingId = document.getElementById('editingTaskId').value.trim();
+          const title = document.getElementById('customTaskTitle').value.trim();
+          const windowStr = document.getElementById('customTaskWindow').value.trim();
+          const mins = parseInt(document.getElementById('customTaskMinutes').value, 10) || 45;
+          const cat = document.getElementById('customTaskCategory').value;
+          const desc = document.getElementById('customTaskDesc').value.trim();
+          if (!title) return;
+
+          if (editingId) {
+            const existing = findTask(state.dayMode, editingId);
+            if (existing) {
+              existing.title = title;
+              existing.timeWindow = windowStr || existing.timeWindow;
+              existing.targetMinutes = mins;
+              existing.category = cat;
+              existing.desc = desc;
+              showToast('Updated task "' + title + '"');
+            }
+          } else {
+            state.schedules[state.dayMode].push({
+              id: state.dayMode + '-custom-' + Date.now(),
+              timeWindow: windowStr || 'Custom Slot',
+              targetMinutes: mins,
+              title: title,
+              category: cat,
+              desc: desc || 'Custom focus block',
+              elapsedSeconds: 0,
+              completed: false,
+              sessions: 0
+            });
+            showToast('Added custom block "' + title + '"');
+          }
+
+          document.getElementById('customTaskForm').reset();
+          document.getElementById('editingTaskId').value = '';
+          closeAddModal();
+          saveState();
+          renderAll();
+        });
+
+        const resetModal = document.getElementById('resetDayModal');
+        const closeResetModal = function () {
+          resetModal.classList.add('hidden');
+          resetModal.classList.remove('flex');
+        };
+        document.getElementById('openResetModalBtn').addEventListener('click', function () {
+          resetModal.classList.remove('hidden');
+          resetModal.classList.add('flex');
+        });
+        document.getElementById('cancelResetBtn').addEventListener('click', closeResetModal);
+
+        document.getElementById('confirmResetBtn').addEventListener('click', function () {
+          if (state.activeTimer.dayMode === state.dayMode) {
+            state.activeTimer = { taskId: null, dayMode: null, startedAtMs: null };
+          }
+          (state.schedules[state.dayMode] || []).forEach(function (t) {
+            t.elapsedSeconds = 0;
+            t.completed = false;
+            t.sessions = 0;
+          });
+          closeResetModal();
+          saveState();
+          renderAll();
+          showToast('Zeroed out today’s timers (custom tasks & roadmaps kept)');
+        });
+
+        document.getElementById('restoreDefaultScheduleBtn').addEventListener('click', function () {
+          if (state.activeTimer.dayMode === state.dayMode) {
+            state.activeTimer = { taskId: null, dayMode: null, startedAtMs: null };
+          }
+          state.schedules[state.dayMode] = JSON.parse(JSON.stringify(DEFAULT_SCHEDULES[state.dayMode]));
+          closeResetModal();
+          saveState();
+          renderAll();
+          showToast('Restored default schedule template');
+        });
+
+        document.getElementById('copyReportBtn').addEventListener('click', function () {
+          const list = state.schedules[state.dayMode] || [];
+          const lines = ['LifeOS Daily Summary (' + state.dayMode.toUpperCase() + ' | ' + state.currentTopic + '):'];
+          list.forEach(function (t) {
+            const sec = getTaskLiveSeconds(t, state.dayMode);
+            if (sec > 0 || t.completed) {
+              lines.push('- [' + (t.completed ? 'x' : ' ') + '] ' + t.timeWindow + ' | ' + t.title + ': ' + formatHumanDuration(sec));
+            }
+          });
+          const text = lines.join('\n');
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand('copy');
+            showToast('Copied daily progress summary to clipboard!');
+          } catch (err) {
+            showToast('Summary ready');
+          }
+          document.body.removeChild(ta);
+        });
+
+        document.getElementById('clearLogsBtn').addEventListener('click', function () {
+          state.sessionLogs = [];
+          saveState();
+          renderAnalytics();
+          showToast('Cleared session log history');
+        });
+      }
+
+      function updateSyncStatus(message, isError) {
+        const status = document.getElementById('syncStatus');
+        if (!status) return;
+        status.textContent = message;
+        status.className = isError ? 'text-rose-300' : 'text-emerald-300';
+      }
+
+      document.getElementById('exportStateBtn').addEventListener('click', function () {
+        const file = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'lifeos-backup.json';
+        link.click();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      });
+
+      document.getElementById('importStateBtn').addEventListener('click', function () {
+        document.getElementById('importStateFile').click();
+      });
+
+      document.getElementById('importStateFile').addEventListener('change', async function (event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        try {
+          const imported = JSON.parse(await file.text());
+          if (!imported || !imported.schedules) {
+            throw new Error('This file does not contain a LifeOS state backup.');
+          }
+          if (!window.confirm('Replace your current tracker with this backup?')) return;
+          if (!loadState(imported)) throw new Error('The backup could not be loaded.');
+          saveState();
+          renderAll();
+          showToast('Backup imported and saved in this browser');
+        } catch (err) {
+          console.error('Could not import LifeOS backup:', err);
+          showToast('Import failed: ' + err.message);
+        } finally {
+          event.target.value = '';
+        }
+      });
+
+      loadState();
+      initEvents();
+      renderAll();
+      tickEverySecond();
+      if (window._lifeOsInterval) clearInterval(window._lifeOsInterval);
+      window._lifeOsInterval = setInterval(tickEverySecond, 1000);
+      document.getElementById('accountBar').classList.remove('hidden');
+      document.getElementById('accountBar').classList.add('flex');
+    })();
+  </script>
+</body>
 </html>

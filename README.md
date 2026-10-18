@@ -1,16 +1,28 @@
-# React + Vite
+# LifeOS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+LifeOS is a personal schedule, focus timer, Pomodoro, streak, and learning-roadmap tracker. GitHub Pages hosts the app for free; your tracker state is saved in your own browser using `localStorage`.
 
-Currently, two official plugins are available:
+## Deploy
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The GitHub Actions workflow builds and deploys the site whenever changes are pushed to `main`.
 
-## React Compiler
+1. Open the repository's **Settings → Pages**.
+2. Set **Build and deployment → Source** to **GitHub Actions**.
+3. Push the project to the `main` branch. The workflow publishes it at <https://avinash-519.github.io/Lifeos/>.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+No Supabase project, hosting account, repository secret, or paid service is required.
 
-## Expanding the ESLint configuration
+## Your tracker data
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Schedule, learning topic, course progress, timers, and streaks are saved in `localStorage` in the browser where you use the site.
+- The data is not uploaded to GitHub or shared with other visitors. GitHub hosts the app's source and static page, not the contents of your browser storage.
+- Browser storage is device- and browser-specific. Use **Export backup** regularly and use **Import backup** to move your tracker to another browser or device.
+- The tracker starts with generic schedules and learning goals. Import your backup from the original tracker to restore your own course, current module, completed problems, schedule, and roadmap.
+- Do not use local storage for sensitive information; anyone with access to that browser profile can access its saved tracker data.
+
+For local development:
+
+```bash
+npm install
+npm run dev
+```
