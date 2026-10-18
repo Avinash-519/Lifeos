@@ -57,7 +57,7 @@
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
   <div id="accountBar" class="hidden items-center justify-between gap-3 border-b border-slate-800 bg-slate-900 px-4 py-2 text-xs">
     <div class="flex flex-wrap items-center gap-3">
-      <span class="text-slate-300">Saved in this browser</span>
+      <span class="text-slate-300">Saved in this browser · daily backup to Downloads when open</span>
       <span id="syncStatus" role="status" aria-live="polite" class="text-emerald-300">Saved</span>
     </div>
     <div class="flex items-center gap-2">
@@ -438,6 +438,7 @@
   <script>
     (function () {
       const STORAGE_KEY = 'lifeos_v03_state_2026';
+      const AUTO_BACKUP_KEY = 'lifeos_last_daily_backup_2026';
 
       function createDefaultSchedule(prefix) {
         const template = [
@@ -1939,14 +1940,37 @@
         status.className = isError ? 'text-rose-300' : 'text-emerald-300';
       }
 
-      document.getElementById('exportStateBtn').addEventListener('click', function () {
+      function downloadBackup(filename) {
         const file = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(file);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'lifeos-backup.json';
+        link.download = filename;
         link.click();
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      function downloadDailyBackup() {
+        const today = getDateKey(new Date());
+        try {
+          if (localStorage.getItem(AUTO_BACKUP_KEY) === today) return;
+          downloadBackup('lifeos-backup-' + today + '.json');
+          localStorage.setItem(AUTO_BACKUP_KEY, today);
+          updateSyncStatus('Daily backup prepared · ' + today);
+        } catch (err) {
+          console.error('Could not create the daily LifeOS backup:', err);
+          updateSyncStatus('Backup failed — use Export backup', true);
+        }
+      }
+
+      document.getElementById('exportStateBtn').addEventListener('click', function () {
+        try {
+          downloadBackup('lifeos-backup.json');
+          updateSyncStatus('Backup download started');
+        } catch (err) {
+          console.error('Could not export the LifeOS backup:', err);
+          updateSyncStatus('Export failed', true);
+        }
       });
 
       document.getElementById('importStateBtn').addEventListener('click', function () {
@@ -1982,6 +2006,11 @@
       window._lifeOsInterval = setInterval(tickEverySecond, 1000);
       document.getElementById('accountBar').classList.remove('hidden');
       document.getElementById('accountBar').classList.add('flex');
+      setTimeout(downloadDailyBackup, 1200);
+      window._lifeOsBackupInterval = setInterval(downloadDailyBackup, 60000);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) downloadDailyBackup();
+      });
     })();
   </script>
 </body>
