@@ -262,6 +262,9 @@
         <button type="button" data-view="analytics" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
           Time Breakdown & Session Log
         </button>
+        <button type="button" data-view="coach" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
+          Private Coach
+        </button>
       </div>
 
       <div class="flex items-center gap-2">
@@ -362,6 +365,23 @@
           </div>
           <div id="sessionLogContainer" class="max-h-80 overflow-y-auto space-y-2 pr-1"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: PRIVATE, LOCAL COACH -->
+    <section id="view-coach" class="hidden space-y-5">
+      <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 sm:p-6 space-y-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-white">Your LifeOS Coach</h2>
+            <p class="mt-1 text-sm text-slate-400">Rule-based suggestions, not a generative AI model. Everything is calculated on this device; no tracker data is sent anywhere.</p>
+          </div>
+          <button id="refreshCoachBtn" type="button" class="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-semibold text-white transition">
+            Review my progress
+          </button>
+        </div>
+        <div id="coachSummary" class="grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
+        <div id="coachInsights" class="grid grid-cols-1 gap-3 lg:grid-cols-2" aria-live="polite"></div>
       </div>
     </section>
   </div>
@@ -1591,6 +1611,139 @@
         }
       }
 
+      function renderCoach() {
+        const schedule = state.schedules[state.dayMode] || [];
+        const completed = schedule.filter(function (task) { return task.completed; }).length;
+        const focusSeconds = schedule.reduce(function (total, task) {
+          return total + getTaskLiveSeconds(task, state.dayMode);
+        }, 0);
+        const solved = state.dsaProblems.filter(function (problem) { return problem.status === 'Solved'; }).length;
+        const today = new Date();
+        let activeDays = 0;
+        for (let offset = 0; offset < 7; offset++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() - offset);
+          if (state.streakDays[getDateKey(date)]) activeDays++;
+        }
+
+        const summary = document.getElementById('coachSummary');
+        summary.innerHTML = '';
+        [
+          { label: 'Schedule blocks', value: schedule.length ? completed + ' / ' + schedule.length : 'None yet' },
+          { label: 'Focus tracked', value: formatHumanDuration(focusSeconds) },
+          { label: 'Problems solved', value: String(solved) },
+          { label: 'Active days this week', value: activeDays + ' / 7' }
+        ].forEach(function (metric) {
+          const card = document.createElement('div');
+          card.className = 'rounded-xl bg-slate-950/80 border border-slate-800 p-3';
+          const label = document.createElement('div');
+          label.className = 'text-[11px] text-slate-400';
+          label.textContent = metric.label;
+          const value = document.createElement('div');
+          value.className = 'mt-1 text-sm font-bold text-white';
+          value.textContent = metric.value;
+          card.appendChild(label);
+          card.appendChild(value);
+          summary.appendChild(card);
+        });
+
+        const insights = [];
+        const activeTask = state.activeTimer.taskId
+          ? findTask(state.activeTimer.dayMode, state.activeTimer.taskId)
+          : null;
+        if (activeTask) {
+          insights.push({
+            title: 'Stay with your current focus',
+            detail: 'Your timer is running for "' + activeTask.title + '". Keep working on this one task, then take a short break before switching.'
+          });
+        } else if (schedule.length) {
+          const unfinished = schedule.filter(function (task) { return !task.completed; });
+          const hour = new Date().getHours();
+          const nextTask = unfinished.find(function (task) {
+            return typeof task.startHour !== 'number' || task.startHour >= hour;
+          }) || unfinished[0];
+          if (nextTask) {
+            insights.push({
+              title: 'A useful next step',
+              detail: 'Start "' + nextTask.title + '"' + (nextTask.category ? ' (' + nextTask.category + ')' : '') + '. Begin with one focused session and mark the block complete when you finish.'
+            });
+          } else {
+            insights.push({
+              title: 'You completed today’s schedule',
+              detail: 'All ' + schedule.length + ' blocks in this schedule are marked complete. Review your progress or plan a realistic next step for tomorrow.'
+            });
+          }
+        } else {
+          insights.push({
+            title: 'Set up your next step',
+            detail: 'Your current schedule is empty. Add a schedule block or choose a learning goal to give your coach something to work with.'
+          });
+        }
+
+        const unfinishedProblems = state.dsaProblems.filter(function (problem) {
+          return problem.status !== 'Solved';
+        });
+        if (unfinishedProblems.length) {
+          const problem = unfinishedProblems.find(function (item) { return item.status === 'Attempted'; }) || unfinishedProblems[0];
+          const topic = state.currentTopic && state.currentTopic !== 'Choose a learning topic'
+            ? ' in ' + state.currentTopic
+            : '';
+          insights.push({
+            title: 'Keep your learning moving',
+            detail: '"' + problem.title + '"' + topic + ' is still open. ' +
+              (problem.status === 'Attempted'
+                ? 'Revisit your approach and note the key idea before moving on.'
+                : 'Try it next, and update its status when you have made progress.')
+          });
+        } else if (state.currentTopic && state.currentTopic !== 'Choose a learning topic') {
+          insights.push({
+            title: 'Learning tracker is clear',
+            detail: 'There are no open problems for ' + state.currentTopic + '. Add the next exercise when your course schedule moves on.'
+          });
+        }
+
+        const openRoadmapItem = Object.keys(state.trackContent).reduce(function (found, category) {
+          if (found) return found;
+          const track = state.trackContent[category];
+          const item = track && track.items && track.items.find(function (entry) { return !entry.done; });
+          return item ? { category: category, item: item } : null;
+        }, null);
+        if (openRoadmapItem) {
+          insights.push({
+            title: 'One small roadmap action',
+            detail: 'Your "' + openRoadmapItem.category + '" roadmap still has "' + openRoadmapItem.item.text + '" to do. Consider breaking it into a short, specific action.'
+          });
+        }
+
+        if (activeDays < 3) {
+          insights.push({
+            title: 'Build a steady rhythm',
+            detail: 'You have logged ' + activeDays + ' active ' + (activeDays === 1 ? 'day' : 'days') + ' in the last 7. Choose a manageable focus goal for your next session; consistency matters more than a long catch-up.'
+          });
+        } else {
+          insights.push({
+            title: 'Your consistency is building',
+            detail: 'You have logged ' + activeDays + ' active days in the last 7. Keep your next goal small enough to sustain this rhythm.'
+          });
+        }
+
+        const container = document.getElementById('coachInsights');
+        container.innerHTML = '';
+        insights.forEach(function (insight) {
+          const card = document.createElement('article');
+          card.className = 'rounded-xl bg-slate-950/80 border border-slate-800 p-4';
+          const heading = document.createElement('h3');
+          heading.className = 'text-sm font-semibold text-indigo-200';
+          heading.textContent = insight.title;
+          const detail = document.createElement('p');
+          detail.className = 'mt-2 text-sm leading-relaxed text-slate-300';
+          detail.textContent = insight.detail;
+          card.appendChild(heading);
+          card.appendChild(detail);
+          container.appendChild(card);
+        });
+      }
+
       function renderControlsState() {
         document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
           const mode = btn.getAttribute('data-daymode');
@@ -1610,7 +1763,7 @@
           }
         });
 
-        ['schedule', 'dsa', 'analytics'].forEach(function (v) {
+        ['schedule', 'dsa', 'analytics', 'coach'].forEach(function (v) {
           const sec = document.getElementById('view-' + v);
           if (sec) {
             if (v === state.activeView) sec.classList.remove('hidden');
@@ -1637,6 +1790,7 @@
         renderScheduleList();
         renderDsaProblems();
         renderAnalytics();
+        renderCoach();
       }
 
       function tickEverySecond() {
@@ -1688,6 +1842,11 @@
       }
 
       function initEvents() {
+        document.getElementById('refreshCoachBtn').addEventListener('click', function () {
+          renderCoach();
+          showToast('Your private coach reviewed the latest tracker data');
+        });
+
         document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
           btn.addEventListener('click', function () {
             state.dayMode = btn.getAttribute('data-daymode');
