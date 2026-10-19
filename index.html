@@ -57,10 +57,11 @@
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
   <div id="accountBar" class="hidden items-center justify-between gap-3 border-b border-slate-800 bg-slate-900 px-4 py-2 text-xs">
     <div class="flex flex-wrap items-center gap-3">
-      <span class="text-slate-300">Saved in this browser · daily backup to Downloads when open</span>
+      <span class="text-slate-300">Saved in this browser · daily local backup</span>
       <span id="syncStatus" role="status" aria-live="polite" class="text-emerald-300">Saved</span>
     </div>
     <div class="flex items-center gap-2">
+      <button id="chooseBackupFolderBtn" type="button" class="hidden rounded-md border border-slate-700 px-2.5 py-1.5 text-slate-200 hover:bg-slate-800">Choose backup folder</button>
       <button id="importStateBtn" type="button" class="rounded-md border border-slate-700 px-2.5 py-1.5 text-slate-200 hover:bg-slate-800">Import backup</button>
       <input id="importStateFile" type="file" accept="application/json,.json" hidden />
       <button id="exportStateBtn" type="button" class="rounded-md border border-slate-700 px-2.5 py-1.5 text-slate-200 hover:bg-slate-800">Export backup</button>
@@ -459,6 +460,8 @@
     (function () {
       const STORAGE_KEY = 'lifeos_v03_state_2026';
       const AUTO_BACKUP_KEY = 'lifeos_last_daily_backup_2026';
+      const BACKUP_SETTINGS_DB = 'lifeos_backup_settings_2026';
+      const BACKUP_SETTINGS_STORE = 'settings';
 
       function createDefaultSchedule(prefix) {
         const template = [
@@ -574,6 +577,7 @@
 
       let state = {
         dayMode: detectDefaultDayMode(),
+        dayModeDate: getDateKey(new Date()),
         activeView: 'schedule',
         categoryFilter: 'all',
         currentTopic: 'Choose a learning topic',
@@ -602,6 +606,7 @@
       };
 
       state.streakDays[getDateKey(new Date())] = false;
+      let currentAppDateKey = getDateKey(new Date());
 
       let audioCtx = null;
       function playAlarmChime(isTest) {
@@ -644,7 +649,12 @@
           }
           if (!parsed || !parsed.schedules) return false;
 
-          state.dayMode = parsed.dayMode || detectDefaultDayMode();
+          const todayKey = getDateKey(new Date());
+          const validDayModes = ['mwf', 'tth', 'weekend'];
+          state.dayMode = parsed.dayModeDate === todayKey && validDayModes.indexOf(parsed.dayMode) !== -1
+            ? parsed.dayMode
+            : detectDefaultDayMode();
+          state.dayModeDate = todayKey;
           state.activeView = parsed.activeView || 'schedule';
           state.categoryFilter = parsed.categoryFilter || 'all';
           state.currentTopic = parsed.currentTopic || 'Choose a learning topic';
@@ -1795,6 +1805,15 @@
 
       function tickEverySecond() {
         const now = new Date();
+        const todayKey = getDateKey(now);
+        if (todayKey !== currentAppDateKey) {
+          currentAppDateKey = todayKey;
+          state.dayMode = detectDefaultDayMode();
+          state.dayModeDate = todayKey;
+          saveState();
+          renderAll();
+        }
+
         const clockEl = document.getElementById('currentClockDisplay');
         if (clockEl) {
           clockEl.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -1850,6 +1869,7 @@
         document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
           btn.addEventListener('click', function () {
             state.dayMode = btn.getAttribute('data-daymode');
+            state.dayModeDate = getDateKey(new Date());
             saveState();
             renderAll();
           });
@@ -2109,14 +2129,139 @@
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
       }
 
-      function downloadDailyBackup() {
-        const today = getDateKey(new Date());
+      function openBackupSettingsDb() {
+        return new Promise(function (resolve, reject) {
+          const request = window.indexedDB.open(BACKUP_SETTINGS_DB, 1);
+          request.onupgradeneeded = function () {
+            if (!request.result.objectStoreNames.contains(BACKUP_SETTINGS_STORE)) {
+              request.result.createObjectStore(BACKUP_SETTINGS_STORE);
+            }
+          };
+          request.onsuccess = function () { resolve(request.result); };
+          request.onerror = function () { reject(request.error || new Error('Could not open backup settings storage.')); };
+        });
+      }
+
+      async function loadBackupDirectoryHandle() {
+        const db = await openBackupSettingsDb();
+        return new Promise(function (resolve, reject) {
+          const transaction = db.transaction(BACKUP_SETTINGS_STORE, 'readonly');
+          const request = transaction.objectStore(BACKUP_SETTINGS_STORE).get('directoryHandle');
+          request.onsuccess = function () { resolve(request.result || null); };
+          request.onerror = function () { reject(request.error || new Error('Could not read the backup folder setting.')); };
+          transaction.oncomplete = function () { db.close(); };
+          transaction.onerror = function () {
+            db.close();
+            reject(transaction.error || new Error('Could not read backup settings.'));
+          };
+        });
+      }
+
+      async function saveBackupDirectoryHandle(handle) {
+        const db = await openBackupSettingsDb();
+        return new Promise(function (resolve, reject) {
+          const transaction = db.transaction(BACKUP_SETTINGS_STORE, 'readwrite');
+          transaction.objectStore(BACKUP_SETTINGS_STORE).put(handle, 'directoryHandle');
+          transaction.oncomplete = function () {
+            db.close();
+            resolve();
+          };
+          transaction.onerror = function () {
+            db.close();
+            reject(transaction.error || new Error('Could not save the backup folder setting.'));
+          };
+          transaction.onabort = function () {
+            db.close();
+            reject(transaction.error || new Error('Saving the backup folder setting was cancelled.'));
+          };
+        });
+      }
+
+      async function writeBackupToFolder(directoryHandle, filename) {
+        const fileHandle = await directoryHandle.getFileHandle(filename, { create: true });
+        const writable = await fileHandle.createWritable();
         try {
-          if (localStorage.getItem(AUTO_BACKUP_KEY) === today) return;
-          downloadBackup('lifeos-backup-' + today + '.json');
-          localStorage.setItem(AUTO_BACKUP_KEY, today);
-          updateSyncStatus('Daily backup prepared · ' + today);
+          await writable.write(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
+          await writable.close();
         } catch (err) {
+          try {
+            await writable.abort();
+          } catch (abortErr) {
+            console.error('Could not cancel an incomplete LifeOS backup write:', abortErr);
+          }
+          throw err;
+        }
+      }
+
+      async function chooseBackupFolder() {
+        try {
+          const directoryHandle = await window.showDirectoryPicker({
+            id: 'lifeos-daily-backup',
+            mode: 'readwrite'
+          });
+          let permission = await directoryHandle.queryPermission({ mode: 'readwrite' });
+          if (permission !== 'granted') {
+            permission = await directoryHandle.requestPermission({ mode: 'readwrite' });
+          }
+          if (permission !== 'granted') {
+            throw new Error('LifeOS was not granted permission to write to that folder.');
+          }
+          await saveBackupDirectoryHandle(directoryHandle);
+          document.getElementById('chooseBackupFolderBtn').textContent = 'Change backup folder';
+          updateSyncStatus('Daily backups will be saved to ' + directoryHandle.name);
+          await downloadDailyBackup(true);
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            updateSyncStatus('Backup folder selection cancelled');
+            return;
+          }
+          console.error('Could not configure the LifeOS backup folder:', err);
+          updateSyncStatus('Folder setup failed — use Export backup', true);
+        }
+      }
+
+      async function downloadDailyBackup(forceFolderWrite) {
+        const today = getDateKey(new Date());
+        let markerReserved = false;
+        try {
+          if (!forceFolderWrite && localStorage.getItem(AUTO_BACKUP_KEY) === today) return;
+
+          let directoryHandle = null;
+          if ('showDirectoryPicker' in window && window.indexedDB) {
+            directoryHandle = await loadBackupDirectoryHandle();
+            if (!directoryHandle) {
+              updateSyncStatus('Choose a folder to enable daily backups');
+              return;
+            }
+            document.getElementById('chooseBackupFolderBtn').textContent = 'Change backup folder';
+            const permission = await directoryHandle.queryPermission({ mode: 'readwrite' });
+            if (permission !== 'granted') {
+              document.getElementById('chooseBackupFolderBtn').textContent = 'Reconnect backup folder';
+              updateSyncStatus('Reconnect your backup folder to continue');
+              return;
+            }
+          }
+
+          if (!forceFolderWrite && localStorage.getItem(AUTO_BACKUP_KEY) === today) return;
+          localStorage.setItem(AUTO_BACKUP_KEY, today);
+          markerReserved = true;
+          const filename = 'lifeos-backup-' + today + '.json';
+          if (directoryHandle) {
+            await writeBackupToFolder(directoryHandle, filename);
+          } else {
+            downloadBackup(filename);
+          }
+          updateSyncStatus('Daily backup saved · ' + today);
+        } catch (err) {
+          if (markerReserved) {
+            try {
+              if (localStorage.getItem(AUTO_BACKUP_KEY) === today) {
+                localStorage.removeItem(AUTO_BACKUP_KEY);
+              }
+            } catch (storageErr) {
+              console.error('Could not clear the daily LifeOS backup marker:', storageErr);
+            }
+          }
           console.error('Could not create the daily LifeOS backup:', err);
           updateSyncStatus('Backup failed — use Export backup', true);
         }
@@ -2131,6 +2276,12 @@
           updateSyncStatus('Export failed', true);
         }
       });
+
+      const chooseBackupFolderBtn = document.getElementById('chooseBackupFolderBtn');
+      if ('showDirectoryPicker' in window && window.indexedDB) {
+        chooseBackupFolderBtn.classList.remove('hidden');
+        chooseBackupFolderBtn.addEventListener('click', chooseBackupFolder);
+      }
 
       document.getElementById('importStateBtn').addEventListener('click', function () {
         document.getElementById('importStateFile').click();
@@ -2166,10 +2317,6 @@
       document.getElementById('accountBar').classList.remove('hidden');
       document.getElementById('accountBar').classList.add('flex');
       setTimeout(downloadDailyBackup, 1200);
-      window._lifeOsBackupInterval = setInterval(downloadDailyBackup, 60000);
-      document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) downloadDailyBackup();
-      });
     })();
   </script>
 </body>
