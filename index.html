@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LifeOS v0.3 — Daily Schedule, Pomodoro, Streak & Task Roadmaps</title>
+  <title>LifeOS — Personal Dashboard, Focus & Health Tracker</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,6 +52,298 @@
       background: #334155;
       border-radius: 9999px;
     }
+
+    :root {
+      color-scheme: light;
+    }
+    body {
+      background: #f5f7fb !important;
+      color: #1f2937 !important;
+    }
+    #activeFocusBanner {
+      position: relative;
+      background: #ffffff !important;
+      border-color: #e8ebf2 !important;
+      box-shadow: 0 2px 8px rgba(29, 43, 75, 0.04);
+    }
+    #appShell {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      align-items: start;
+      gap: 28px;
+      max-width: 1440px;
+      min-height: calc(100vh - 94px);
+    }
+    #mainSidebar {
+      position: sticky;
+      top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      align-self: stretch;
+      min-height: calc(100vh - 122px);
+      padding: 16px 12px;
+      border: 1px solid #e8ebf2;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 3px 12px rgba(29, 43, 75, 0.035);
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 7px 12px;
+      border-bottom: 1px solid #eef0f5;
+    }
+    .sidebar-brand > span {
+      color: #fff !important;
+    }
+    .sidebar-nav-label {
+      margin: 0 8px 7px;
+      color: #8992a3;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .sidebar-nav {
+      display: grid;
+      gap: 3px;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: #687287;
+      font-size: 12px;
+      font-weight: 650;
+      text-align: left;
+      transition: background-color .15s, color .15s;
+    }
+    .sidebar-link:hover {
+      background: #f5f6fa;
+      color: #26324a;
+    }
+    .sidebar-link.active {
+      background: #eef1ff;
+      color: #4055cb;
+    }
+    .sidebar-icon {
+      display: inline-flex;
+      justify-content: center;
+      width: 18px;
+      color: #929bad;
+      font-size: 14px;
+    }
+    .sidebar-link.active .sidebar-icon {
+      color: #5064dc;
+    }
+    .sidebar-note {
+      margin-top: auto;
+      padding: 11px;
+      border: 1px solid #e9ecf3;
+      border-radius: 12px;
+      color: #7b8496;
+      font-size: 10px;
+      line-height: 1.55;
+    }
+    #mainContent {
+      min-width: 0;
+      padding-top: 20px;
+    }
+    #schedulePageTitle {
+      margin: 0;
+      color: #202b42;
+      font-size: 20px;
+      letter-spacing: -.035em;
+    }
+    #schedulePageDescription {
+      margin: 5px 0 0;
+      color: #7b8496;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .app-card,
+    #appShell .rounded-2xl[class*="bg-slate-"],
+    #appShell .rounded-xl[class*="bg-slate-"] {
+      border-color: #e8ebf2 !important;
+      background-color: #fff !important;
+      box-shadow: 0 3px 12px rgba(29, 43, 75, 0.035);
+    }
+    #appShell [class*="bg-slate-950"] {
+      background-color: #f7f8fb !important;
+    }
+    #appShell [class*="bg-slate-900"] {
+      background-color: #fff !important;
+    }
+    #appShell [class*="bg-slate-800"] {
+      background-color: #f1f3f7 !important;
+    }
+    #activeFocusBanner [class*="bg-slate-950"] {
+      background-color: #f7f8fb !important;
+    }
+    #activeFocusBanner [class*="bg-slate-900"] {
+      background-color: #fff !important;
+    }
+    #activeFocusBanner [class*="bg-slate-800"] {
+      background-color: #f1f3f7 !important;
+    }
+    #appShell [class*="border-slate-800"],
+    #appShell [class*="border-slate-700"],
+    #activeFocusBanner [class*="border-slate-800"],
+    #activeFocusBanner [class*="border-slate-700"] {
+      border-color: #e4e8f0 !important;
+    }
+    #appShell [class~="text-white"],
+    #appShell [class~="text-slate-100"],
+    #appShell [class~="text-slate-200"],
+    #appShell [class~="text-slate-300"],
+    #appShell [class~="text-slate-400"],
+    #activeFocusBanner [class~="text-white"],
+    #activeFocusBanner [class~="text-slate-100"],
+    #activeFocusBanner [class~="text-slate-200"],
+    #activeFocusBanner [class~="text-slate-300"],
+    #activeFocusBanner [class~="text-slate-400"] {
+      color: #657087 !important;
+    }
+    #appShell h1,
+    #appShell h2,
+    #appShell h3,
+    #appShell h4,
+    #activeFocusBanner #bannerTaskTitle,
+    #activeFocusBanner #bannerLiveTimer {
+      color: #202b42 !important;
+    }
+    #appShell button[class*="bg-indigo-600"],
+    #appShell button[class*="bg-indigo-500"],
+    #appShell button[class*="bg-emerald-600"],
+    #appShell button[class*="bg-emerald-500"],
+    #activeFocusBanner button[class*="bg-indigo-600"],
+    #activeFocusBanner button[class*="bg-indigo-500"] {
+      color: #fff !important;
+    }
+    #appShell input,
+    #appShell select,
+    #activeFocusBanner button {
+      color: #334155;
+    }
+    #scheduleListContainer {
+      gap: 12px;
+    }
+    #scheduleListContainer > div {
+      border-color: #e5e9f1 !important;
+      background-color: #fff !important;
+      box-shadow: 0 3px 12px rgba(29, 43, 75, 0.035);
+    }
+    #scheduleListContainer > div.active-task-card {
+      border-color: #aab5ff !important;
+      background-color: #f4f5ff !important;
+    }
+    #scheduleListContainer [data-card-header] {
+      cursor: default;
+    }
+    #scheduleListContainer .mono-timer {
+      font-variant-numeric: tabular-nums;
+    }
+    #accountBar {
+      background: #fff !important;
+      border-color: #e8ebf2 !important;
+      color: #687287 !important;
+    }
+    #addTaskModal > div,
+    #resetDayModal > div {
+      border-color: #e8ebf2 !important;
+      background: #fff !important;
+      color: #334155;
+    }
+    #addTaskModal h3,
+    #resetDayModal h3 {
+      color: #202b42 !important;
+    }
+    #addTaskModal label,
+    #resetDayModal p {
+      color: #657087 !important;
+    }
+    #addTaskModal input,
+    #addTaskModal select {
+      border-color: #d9deea !important;
+      background: #fff !important;
+      color: #334155 !important;
+    }
+    #pomodoroControls summary::-webkit-details-marker {
+      display: none;
+    }
+    #accountBar [class~="text-slate-300"],
+    #accountBar button {
+      color: #58647b !important;
+    }
+    #accountBar button {
+      border-color: #e4e8f0 !important;
+      background: #fff !important;
+    }
+    @media (max-width: 900px) {
+      #appShell {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+      }
+      #mainSidebar {
+        position: static;
+        min-height: auto;
+        padding: 12px;
+      }
+      #mainSidebar .sidebar-brand {
+        padding-bottom: 9px;
+      }
+      #mainSidebar .sidebar-note,
+      #mainSidebar .sidebar-nav-label {
+        display: none;
+      }
+      #mainSidebar .sidebar-nav {
+        display: flex;
+        overflow-x: auto;
+        gap: 4px;
+        padding-bottom: 2px;
+      }
+      #mainSidebar .sidebar-link {
+        flex: 0 0 auto;
+        width: auto;
+        padding-inline: 11px;
+      }
+      #mainContent {
+        padding-top: 10px;
+      }
+    }
+    @media (max-width: 560px) {
+      #activeFocusBanner > .mx-auto {
+        padding-inline: 12px;
+      }
+      #appShell {
+        padding-inline: 12px;
+      }
+      #mainSidebar {
+        padding: 9px;
+      }
+      #mainSidebar .sidebar-brand {
+        display: none;
+      }
+      #mainSidebar .sidebar-link {
+        min-height: 34px;
+        font-size: 11px;
+      }
+      #mainContent > header {
+        align-items: flex-start;
+      }
+      #mainContent .day-mode-btn {
+        padding-inline: 7px;
+        font-size: 10px;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
@@ -78,17 +370,17 @@
           <div id="bannerStatusDot" class="h-3 w-3 rounded-full bg-slate-500 shrink-0"></div>
           <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
-              <span id="bannerStatusLabel" class="text-xs font-semibold uppercase tracking-wider text-slate-400">No Active Timer — Click Any Task Below to Start</span>
+              <span id="bannerStatusLabel" class="text-xs font-semibold uppercase tracking-wider text-slate-400">No active focus session</span>
               <span id="bannerCategoryBadge" class="hidden rounded-full px-2 py-0.5 text-[11px] font-medium bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"></span>
             </div>
-            <p id="bannerTaskTitle" class="truncate text-sm sm:text-base font-bold text-slate-200">Select a schedule block to start tracking your focus time</p>
+            <p id="bannerTaskTitle" class="truncate text-sm sm:text-base font-bold text-slate-200">Choose a task when you’re ready to focus</p>
           </div>
         </div>
 
         <div class="flex items-center gap-3 ml-auto">
           <div class="text-right">
             <div id="bannerLiveTimer" class="mono-timer text-xl sm:text-2xl font-bold text-slate-200">00:00:00</div>
-            <div id="bannerTargetSubtext" class="text-[11px] text-slate-400">Target: --</div>
+            <div id="bannerTargetSubtext" class="text-[11px] text-slate-400">Elapsed time counts while you focus</div>
           </div>
           <div id="bannerControls" class="hidden items-center gap-2">
             <button id="bannerPauseBtn" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 px-3 py-1.5 text-xs font-semibold text-amber-200 transition">
@@ -101,92 +393,119 @@
         </div>
       </div>
 
-      <!-- Row 2: Built-In Pomodoro Alarm Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="font-semibold text-slate-300 flex items-center gap-1">
-            <span>🔔 Pomodoro Alarm:</span>
-          </span>
+      <details id="pomodoroControls" class="border-t border-slate-800/80 pt-2 text-xs">
+        <summary class="flex cursor-pointer list-none items-center gap-2 text-slate-500">
+          <span class="font-semibold">Pomodoro timer</span>
+          <span id="pomoPhaseBadge" class="rounded-md bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[11px] font-semibold text-indigo-300">Work Sprint</span>
+          <span id="pomoCountdownDisplay" class="mono-timer ml-auto text-sm font-bold text-amber-300">50:00</span>
+        </summary>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs">
           <div class="inline-flex rounded-lg bg-slate-950 p-0.5 border border-slate-800">
             <button type="button" data-pomo-preset="25-5" class="pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition">25m / 5m</button>
             <button type="button" data-pomo-preset="50-10" class="pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition">50m / 10m (DSA)</button>
             <button type="button" data-pomo-preset="45-0" class="pomo-preset-btn rounded-md px-2 py-1 text-[11px] font-semibold transition">45m Cap (AI)</button>
           </div>
-          <span id="pomoPhaseBadge" class="rounded-md bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[11px] font-semibold text-indigo-300">Work Sprint</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="pomoToggleBtn" type="button" class="rounded-lg bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1 text-[11px] font-semibold text-white transition">
+              Start Pomo
+            </button>
+            <button id="pomoSwitchPhaseBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition" title="Switch between Work Sprint and Break">
+              Switch Break
+            </button>
+            <button id="pomoResetBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition">
+              Reset
+            </button>
+            <button id="pomoMuteBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-200 transition" title="Toggle alarm chime sound">
+              🔊 Sound On
+            </button>
+            <button id="pomoTestChimeBtn" type="button" class="rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 px-2 py-1 text-[11px] text-slate-300 transition" title="Test the Pomodoro alarm sound">
+              Test Bell
+            </button>
+          </div>
         </div>
-
-        <div class="flex items-center gap-2 ml-auto">
-          <div id="pomoCountdownDisplay" class="mono-timer text-sm sm:text-base font-bold text-amber-300 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1">50:00</div>
-          <button id="pomoToggleBtn" type="button" class="rounded-lg bg-indigo-600 hover:bg-indigo-500 px-2.5 py-1 text-[11px] font-semibold text-white transition">
-            Start Pomo
-          </button>
-          <button id="pomoSwitchPhaseBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition" title="Switch between Work Sprint and Break">
-            Switch Break
-          </button>
-          <button id="pomoResetBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition">
-            Reset
-          </button>
-          <button id="pomoMuteBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-200 transition" title="Toggle alarm chime sound">
-            🔊 Sound On
-          </button>
-          <button id="pomoTestChimeBtn" type="button" class="rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 px-2 py-1 text-[11px] text-slate-300 transition" title="Test the Pomodoro alarm sound">
-            Test Bell
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Thin progress bar for active task -->
-    <div class="h-1 w-full bg-slate-800 overflow-hidden">
-      <div id="bannerProgressBar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+      </details>
     </div>
   </div>
 
   <!-- Main Container -->
-  <div class="mx-auto max-w-6xl px-4 py-5 space-y-5">
-
-    <!-- Header, Active Topic Badge & Day Mode Switcher -->
-    <header class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-3 border-b border-slate-800/80">
-      <div>
-        <div class="flex flex-wrap items-center gap-2.5">
-          <span class="inline-flex items-center justify-center h-8 w-8 rounded-lg bg-indigo-600 text-white font-bold text-sm shadow-lg shadow-indigo-600/30">OS</span>
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">LifeOS <span class="text-indigo-400 font-semibold text-base sm:text-lg">Daily Execution & Focus Tracker</span></h1>
-        </div>
-        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-          <span>Daily anchor</span>
-          <span>•</span>
-          <span>Current focus:</span>
-          <button id="editTopicQuickBtn" type="button" class="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 px-2 py-0.5 font-semibold text-emerald-300 transition" title="Click to change your current DSA or System Design module">
-            <span id="currentTopicLabel">Choose a learning topic</span>
-            <span class="text-[10px] opacity-80">✎</span>
-          </button>
+  <div id="appShell" class="mx-auto px-4 py-5">
+    <aside id="mainSidebar" aria-label="LifeOS navigation">
+      <div class="sidebar-brand">
+        <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white font-bold">L</span>
+        <div>
+          <div class="text-sm font-extrabold tracking-tight text-slate-800">LifeOS</div>
+          <div class="text-[10px] text-slate-500">Your personal dashboard</div>
         </div>
       </div>
+      <div>
+        <p class="sidebar-nav-label">Workspace</p>
+        <nav class="sidebar-nav" aria-label="Main navigation">
+          <button type="button" class="sidebar-link active" data-app-view="schedule" data-app-page="today">
+            <span class="sidebar-icon">⌂</span>Today
+          </button>
+          <p class="sidebar-nav-label mt-3">Categories</p>
+          <button type="button" class="sidebar-link" data-category-nav="DSA & Scaler">
+            <span class="sidebar-icon">▤</span>Learning
+          </button>
+          <button type="button" class="sidebar-link" data-category-nav="IAM Work">
+            <span class="sidebar-icon">▣</span>Work
+          </button>
+          <button type="button" class="sidebar-link" data-category-nav="AI & LifeOS">
+            <span class="sidebar-icon">◇</span>Projects
+          </button>
+          <button type="button" class="sidebar-link" data-category-nav="Health & Gym">
+            <span class="sidebar-icon">♡</span>Health
+          </button>
+          <button type="button" class="sidebar-link" data-category-nav="Life & Routine">
+            <span class="sidebar-icon">○</span>Personal
+          </button>
+          <p class="sidebar-nav-label mt-3">Review</p>
+          <button type="button" class="sidebar-link" data-app-view="dsa" data-app-page="learning-progress">
+            <span class="sidebar-icon">▧</span>Course progress
+          </button>
+          <button type="button" class="sidebar-link" data-app-view="analytics" data-app-page="insights">
+            <span class="sidebar-icon">▥</span>Insights
+          </button>
+          <button type="button" class="sidebar-link" data-app-view="coach" data-app-page="coach">
+            <span class="sidebar-icon">✦</span>Private coach
+          </button>
+        </nav>
+      </div>
+      <div class="sidebar-note">Your tracker is saved in this browser. Start a task to measure the time you actually spend on it.</div>
+    </aside>
 
+    <main id="mainContent" class="space-y-5">
+
+    <!-- Header, Active Topic Badge & Day Mode Switcher -->
+    <header id="appScheduleHeader" class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-3 border-b border-slate-800/80">
+      <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+        <span>Learning topic</span>
+        <button id="editTopicQuickBtn" type="button" class="inline-flex items-center gap-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 px-2.5 py-1.5 font-semibold text-emerald-300 transition" title="Change your current course topic">
+          <span id="currentTopicLabel">Choose a learning topic</span>
+          <span class="text-[10px] opacity-80">✎</span>
+        </button>
+      </div>
       <div class="flex flex-wrap items-center gap-2">
-        <!-- Live Clock Badge -->
-        <div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-300">
+        <div class="flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-xs text-slate-400">
           <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
           <span id="currentClockDisplay" class="mono-timer font-semibold">--:--</span>
         </div>
-
-        <!-- Day Type Switcher -->
-        <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800">
-          <button type="button" data-daymode="mwf" class="day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">
-            Mon / Wed / Fri (Class)
+        <div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1 border border-slate-800" aria-label="Schedule type">
+          <button type="button" data-daymode="mwf" class="day-mode-btn rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition">
+            Class days
           </button>
-          <button type="button" data-daymode="tth" class="day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">
-            Tue / Thu (Assign.)
+          <button type="button" data-daymode="tth" class="day-mode-btn rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition">
+            Assignment days
           </button>
-          <button type="button" data-daymode="weekend" class="day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition">
-            Sat / Sun (Weekend)
+          <button type="button" data-daymode="weekend" class="day-mode-btn rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition">
+            Weekend
           </button>
         </div>
       </div>
     </header>
 
     <!-- Streak & 7-Day Consistency Strip -->
-    <section class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <section id="streakSection" class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-2xl">
           🔥
@@ -195,7 +514,7 @@
           <div class="flex items-center gap-2 flex-wrap">
             <span id="streakCountHeading" class="text-base sm:text-lg font-extrabold text-white">1 Day Streak</span>
             <span id="streakTodayBadge" class="rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-              Goal: 90m+ DSA or 4+ blocks done
+              Goal: 90m+ learning focus or 4+ tasks done
             </span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5">
@@ -212,90 +531,140 @@
       </div>
     </section>
 
-    <!-- KPI Summary Row -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-slate-400">Total Tracked Today</span>
-          <span class="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[11px] font-semibold text-indigo-400">All Tasks</span>
-        </div>
-        <div id="kpiTotalTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-white">0h 00m 00s</div>
-        <div id="kpiTotalSub" class="mt-1 text-xs text-slate-400">0 focus sessions • 0 🍅</div>
+    <!-- Today's overview metrics -->
+    <section id="homeStats" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-slate-400">Focus time today</span>
+        <span class="rounded-md bg-indigo-500/10 px-2 py-0.5 text-[11px] font-semibold text-indigo-400">All tasks</span>
       </div>
-
-      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-slate-400">Learning focus</span>
-          <span class="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">Priority #1</span>
-        </div>
-        <div id="kpiDsaTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-emerald-300">0h 00m</div>
-        <div id="kpiDsaSub" class="mt-1 text-xs text-slate-400">Target: 4h+ problem solving</div>
+      <div id="kpiTotalTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-white">0h 00m 00s</div>
+      <div id="kpiTotalSub" class="mt-1 text-xs text-slate-400">0 focus sessions</div>
+    </div>
+    <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-slate-400">Learning focus</span>
+        <span class="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">Current topic</span>
       </div>
-
-      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-slate-400">AI & LifeOS Sprint</span>
-          <span id="kpiAiBadge" class="rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold text-purple-400">45m Cap</span>
-        </div>
-        <div id="kpiAiTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-purple-300">00m 00s</div>
-        <div id="kpiAiSub" class="mt-1 text-xs text-slate-400">Brain refresh reward slot</div>
+      <div id="kpiDsaTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-emerald-300">0h 00m</div>
+      <div id="kpiDsaSub" class="mt-1 text-xs text-slate-400">Choose a learning topic</div>
+    </div>
+    <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-slate-400">Project focus</span>
+        <span id="kpiAiBadge" class="rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold text-purple-400">0 remaining</span>
       </div>
-
-      <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-slate-400">Blocks Completed</span>
-          <span id="kpiDonePercent" class="rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-semibold text-sky-400">0%</span>
-        </div>
-        <div id="kpiBlocksCompleted" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-white">0 / 11</div>
-        <div id="kpiDpSolvedSub" class="mt-1 text-xs text-slate-400">Problems Solved: 0</div>
+      <div id="kpiAiTracked" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-purple-300">00m 00s</div>
+      <div id="kpiAiSub" class="mt-1 text-xs text-slate-400">Time spent on projects today</div>
+    </div>
+    <div class="rounded-2xl bg-slate-900/90 border border-slate-800/90 p-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-medium text-slate-400">Tasks complete</span>
+        <span id="kpiDonePercent" class="rounded-md bg-sky-500/10 px-2 py-0.5 text-[11px] font-semibold text-sky-400">0%</span>
       </div>
+      <div id="kpiBlocksCompleted" class="mono-timer mt-2 text-xl sm:text-2xl font-bold text-white">0 / 0</div>
+      <div id="kpiDpSolvedSub" class="mt-1 text-xs text-slate-400">Learning goals: 0 complete</div>
+    </div>
     </section>
 
-    <!-- Navigation Tabs -->
-    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
-      <div class="flex flex-wrap items-center gap-1.5">
-        <button type="button" data-view="schedule" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
-          Daily Schedule & Timer
-        </button>
-        <button type="button" data-view="dsa" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
-          Learning Progress
-        </button>
-        <button type="button" data-view="analytics" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
-          Time Breakdown & Session Log
-        </button>
-        <button type="button" data-view="coach" class="view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition">
-          Private Coach
-        </button>
+    <section id="schedulePageIntro" class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <p id="schedulePageEyebrow" class="sidebar-nav-label m-0">Your day</p>
+      <h2 id="schedulePageTitle">Today's plan</h2>
+      <p id="schedulePageDescription">Choose a task when you’re ready to focus. Your timer measures time as you work.</p>
       </div>
-
-      <div class="flex items-center gap-2">
-        <button id="openAddTaskModalBtn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition">
-          <span>Add Custom Task</span>
-        </button>
-        <button id="openResetModalBtn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 px-3 py-2 text-xs font-medium text-slate-300 transition">
-          Reset Day Timers
-        </button>
-      </div>
+    <div class="flex items-center gap-2">
+      <button id="openAddTaskModalBtn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm transition">
+        <span>+ Add task</span>
+      </button>
+      <button id="openResetModalBtn" type="button" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 px-3 py-2 text-xs font-medium text-slate-300 transition">
+        More options
+      </button>
+      <button id="courseProgressQuickLink" type="button" data-app-view="dsa" data-app-page="learning-progress" class="hidden rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">
+        Open course progress
+      </button>
     </div>
+    </section>
 
     <!-- VIEW 1: DAILY SCHEDULE & CLICK-TO-TRACK -->
     <section id="view-schedule" class="space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-1.5">
-          <button type="button" data-cat="all" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">All Blocks</button>
-          <button type="button" data-cat="DSA & Scaler" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Learning</button>
-          <button type="button" data-cat="IAM Work" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Work</button>
-          <button type="button" data-cat="AI & LifeOS" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">AI & LifeOS</button>
-          <button type="button" data-cat="Health & Gym" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Health & Gym</button>
-          <button type="button" data-cat="Life & Routine" class="cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition">Life & Routine</button>
+    <section id="healthTrackerPanel" class="hidden space-y-4">
+      <div class="rounded-2xl bg-white border border-slate-200 p-5 space-y-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-800">Weight & measurements</h3>
+          <p class="mt-1 text-xs leading-relaxed text-slate-500">Add a dated check-in. Enter only the measurements you want to track. LifeOS shows changes between your own entries; these are personal tracking insights, not medical advice.</p>
         </div>
-        <p class="text-xs text-slate-400">
-          Click any task to <span class="text-slate-200 font-medium">Start Timer + Open Roadmap</span>, or click <span class="text-indigo-300 font-medium">📖 Content & Progress</span> to see what's achieved vs. remaining.
-        </p>
+        <form id="healthMeasurementForm" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label class="text-xs font-medium text-slate-600">Entry date
+            <input name="date" type="date" required class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Weight (kg)
+            <input name="weightKg" type="number" min="0.1" max="500" step="0.1" placeholder="e.g. 70.5" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Height (cm)
+            <input name="heightCm" type="number" min="0.1" max="300" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Waist (cm)
+            <input name="waistCm" type="number" min="0.1" max="300" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Hips (cm)
+            <input name="hipsCm" type="number" min="0.1" max="300" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Chest (cm)
+            <input name="chestCm" type="number" min="0.1" max="300" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Neck (cm)
+            <input name="neckCm" type="number" min="0.1" max="100" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Upper arm (cm)
+            <input name="armCm" type="number" min="0.1" max="150" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Thigh (cm)
+            <input name="thighCm" type="number" min="0.1" max="200" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <label class="text-xs font-medium text-slate-600">Body fat (%), if known
+            <input name="bodyFatPercent" type="number" min="0.1" max="100" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+          </label>
+          <div class="flex items-end">
+            <button type="submit" class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500">Save check-in</button>
+          </div>
+        </form>
       </div>
 
-      <!-- Schedule List Container -->
-      <div id="scheduleListContainer" class="grid grid-cols-1 gap-3.5"></div>
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section class="rounded-2xl bg-white border border-slate-200 p-5">
+          <h3 class="text-sm font-bold text-slate-800">Your trends</h3>
+          <p class="mt-1 text-xs text-slate-500">Latest reading compared with your previous entry for that measurement.</p>
+          <div id="healthInsights" class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2"></div>
+        </section>
+        <section class="rounded-2xl bg-white border border-slate-200 p-5">
+          <h3 class="text-sm font-bold text-slate-800">Optional personal targets</h3>
+          <p class="mt-1 text-xs text-slate-500">Targets are only for your own reference. LifeOS does not judge or recommend a target.</p>
+          <form id="healthGoalsForm" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <label class="text-xs font-medium text-slate-600">Weight target (kg)
+              <input name="weightKg" type="number" min="0.1" max="500" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+            </label>
+            <label class="text-xs font-medium text-slate-600">Waist target (cm)
+              <input name="waistCm" type="number" min="0.1" max="300" step="0.1" placeholder="Optional" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800" />
+            </label>
+            <button type="submit" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Save targets</button>
+          </form>
+        </section>
+      </div>
+
+      <section class="rounded-2xl bg-white border border-slate-200 p-5">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">Check-in history</h3>
+            <p class="mt-1 text-xs text-slate-500">Your recent measurements, newest first.</p>
+          </div>
+          <span class="text-[11px] text-slate-500">Stored only in this browser</span>
+        </div>
+        <div id="healthEntriesList" class="mt-3 space-y-2"></div>
+      </section>
+    </section>
+    <!-- Schedule List Container -->
+    <div id="scheduleListContainer" class="grid grid-cols-1 gap-3.5"></div>
     </section>
 
     <!-- VIEW 2: GENERIC SCALER DSA & SYSTEM DESIGN ASSIGNMENT TRACKER -->
@@ -311,6 +680,7 @@
                 <button type="button" data-topic-preset="Graphs & Shortest Paths" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">Graphs</button>
                 <button type="button" data-topic-preset="Trees, BST & Heaps" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">Trees</button>
                 <button type="button" data-topic-preset="System Design (LLD / HLD)" class="topic-preset-chip rounded-md bg-slate-800 hover:bg-slate-700 px-2 py-0.5 text-[11px] text-slate-300">System Design</button>
+                </main>
               </div>
             </div>
             <h2 class="mt-2 text-lg font-bold text-white">Learning Goals & Practice Queue</h2>
@@ -343,8 +713,8 @@
         <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 space-y-4">
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-base font-bold text-white">Category Time Allocation (Today)</h2>
-              <p class="text-xs text-slate-400">Actual tracked time vs. your planned daily budget</p>
+              <h2 class="text-base font-bold text-white">Time tracked by area</h2>
+              <p class="text-xs text-slate-400">Measured focus time from your completed and active task sessions</p>
             </div>
             <button id="copyReportBtn" type="button" class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 transition">
               Copy Daily Summary
@@ -391,24 +761,14 @@
   <div id="addTaskModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
     <div class="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <h3 id="taskModalHeading" class="text-base font-bold text-white">Add Custom Task to Current Schedule</h3>
+        <h3 id="taskModalHeading" class="text-base font-bold text-white">Add a task</h3>
         <button id="closeAddTaskModalBtn" type="button" class="text-slate-400 hover:text-white text-sm font-bold px-2 py-1">✕</button>
       </div>
       <form id="customTaskForm" class="space-y-3">
         <input id="editingTaskId" type="hidden" value="" />
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">Task Title</label>
-          <input id="customTaskTitle" type="text" required placeholder="e.g., DSA Block 1: Core Problem Solving" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Time Window</label>
-            <input id="customTaskWindow" type="text" required placeholder="e.g., 11:00 AM – 1:00 PM" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Target Minutes</label>
-            <input id="customTaskMinutes" type="number" min="5" max="360" value="45" required class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
-          </div>
+          <input id="customTaskTitle" type="text" required placeholder="What do you want to work on?" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">Category</label>
@@ -422,7 +782,7 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">Focus Notes / Description</label>
-          <input id="customTaskDesc" type="text" placeholder="Optional details or specific goal for this block" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
+          <input id="customTaskDesc" type="text" placeholder="What does completing it look like?" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none" />
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <button id="cancelAddTaskBtn" type="button" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-300">Cancel</button>
@@ -465,12 +825,12 @@
 
       function createDefaultSchedule(prefix) {
         const template = [
-          { timeWindow: '8:00 AM – 9:00 AM', startHour: 8, endHour: 9, targetMinutes: 60, title: 'Morning routine', category: 'Health & Gym', desc: 'Start the day with a routine that works for you.' },
-          { timeWindow: '9:00 AM – 11:00 AM', startHour: 9, endHour: 11, targetMinutes: 120, title: 'Focused work block', category: 'IAM Work', desc: 'Make progress on one important work or personal task.' },
-          { timeWindow: '11:00 AM – 12:00 PM', startHour: 11, endHour: 12, targetMinutes: 60, title: 'Learning block', category: 'DSA & Scaler', desc: 'Study a topic of your choice and capture useful notes.' },
-          { timeWindow: '12:00 PM – 1:00 PM', startHour: 12, endHour: 13, targetMinutes: 60, title: 'Lunch and reset', category: 'Life & Routine', desc: 'Take a screen break and recharge.' },
-          { timeWindow: '1:00 PM – 3:00 PM', startHour: 13, endHour: 15, targetMinutes: 120, title: 'Project sprint', category: 'AI & LifeOS', desc: 'Build, practice, or make progress on a project.' },
-          { timeWindow: '3:00 PM – 4:00 PM', startHour: 15, endHour: 16, targetMinutes: 60, title: 'Movement break', category: 'Health & Gym', desc: 'Move, stretch, or get some fresh air.' }
+          { title: 'Morning routine', category: 'Health & Gym', desc: 'Start the day with a routine that works for you.' },
+          { title: 'Focused work block', category: 'IAM Work', desc: 'Make progress on one important work or personal task.' },
+          { title: 'Learning block', category: 'DSA & Scaler', desc: 'Study a topic of your choice and capture useful notes.' },
+          { title: 'Lunch and reset', category: 'Life & Routine', desc: 'Take a screen break and recharge.' },
+          { title: 'Project sprint', category: 'AI & LifeOS', desc: 'Build, practice, or make progress on a project.' },
+          { title: 'Movement break', category: 'Health & Gym', desc: 'Move, stretch, or get some fresh air.' }
         ];
         return template.map(function (task, index) {
           return Object.assign({}, task, {
@@ -591,6 +951,11 @@
           dayMode: null,
           startedAtMs: null
         },
+        healthEntries: [],
+        healthGoals: {
+          weightKg: '',
+          waistCm: ''
+        },
         pomodoro: {
           preset: '50-10',
           workMinutes: 50,
@@ -666,6 +1031,11 @@
             : JSON.parse(JSON.stringify(DEFAULT_TRACK_CONTENT));
           state.sessionLogs = Array.isArray(parsed.sessionLogs) ? parsed.sessionLogs : [];
           state.activeTimer = parsed.activeTimer || { taskId: null, dayMode: null, startedAtMs: null };
+          state.healthEntries = Array.isArray(parsed.healthEntries) ? parsed.healthEntries : [];
+          state.healthGoals = Object.assign(
+            { weightKg: '', waistCm: '' },
+            parsed.healthGoals && typeof parsed.healthGoals === 'object' ? parsed.healthGoals : {}
+          );
           if (parsed.pomodoro) {
             state.pomodoro = Object.assign({}, state.pomodoro, parsed.pomodoro);
           }
@@ -870,8 +1240,6 @@
           }
         }
         state.activeTimer = { taskId: null, dayMode: null, startedAtMs: null };
-        state.pomodoro.running = false;
-        state.pomodoro.lastTickMs = null;
         saveState();
       }
 
@@ -894,18 +1262,8 @@
             dayMode: dayMode,
             startedAtMs: Date.now()
           };
-          // Automatically expand the inside-task content drawer so the user sees Achieved vs Remaining immediately!
-          state.expandedTaskIds[taskId] = true;
-
-          if (task.category === 'AI & LifeOS') {
-            setPomodoroPreset('45-0');
-          } else if (task.category === 'DSA & Scaler' && state.pomodoro.preset === '45-0') {
-            setPomodoroPreset('50-10');
-          }
-          state.pomodoro.running = true;
-          state.pomodoro.lastTickMs = Date.now();
           saveState();
-          showToast('Started "' + task.title + '" & opened task roadmap');
+          showToast('Started focus on "' + task.title + '"');
         }
         renderAll();
       }
@@ -955,12 +1313,10 @@
       function openTaskModalForEdit(dayMode, taskId) {
         const task = findTask(dayMode, taskId);
         if (!task) return;
-        document.getElementById('taskModalHeading').textContent = 'Edit Schedule Block';
+        document.getElementById('taskModalHeading').textContent = 'Edit task';
         document.getElementById('saveTaskSubmitBtn').textContent = 'Save Changes';
         document.getElementById('editingTaskId').value = task.id;
         document.getElementById('customTaskTitle').value = task.title;
-        document.getElementById('customTaskWindow').value = task.timeWindow;
-        document.getElementById('customTaskMinutes').value = task.targetMinutes || 60;
         document.getElementById('customTaskCategory').value = task.category;
         document.getElementById('customTaskDesc').value = task.desc || '';
 
@@ -970,11 +1326,10 @@
       }
 
       function openTaskModalForAdd() {
-        document.getElementById('taskModalHeading').textContent = 'Add Custom Task to Current Schedule';
+        document.getElementById('taskModalHeading').textContent = 'Add a task';
         document.getElementById('saveTaskSubmitBtn').textContent = 'Add to Schedule';
         document.getElementById('customTaskForm').reset();
         document.getElementById('editingTaskId').value = '';
-        document.getElementById('customTaskMinutes').value = 45;
 
         const modal = document.getElementById('addTaskModal');
         modal.classList.remove('hidden');
@@ -1051,7 +1406,7 @@
           todayBadge.className = 'rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300';
           toggleTodayBtn.textContent = '✓ Today Logged';
         } else {
-          todayBadge.textContent = 'Auto-locks at 90m+ DSA or 4+ blocks done';
+          todayBadge.textContent = 'Auto-locks at 90m+ learning focus or 4+ tasks done';
           todayBadge.className = 'rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300';
           toggleTodayBtn.textContent = '✓ Mark Today Done';
         }
@@ -1065,45 +1420,38 @@
         const timerEl = document.getElementById('bannerLiveTimer');
         const targetSub = document.getElementById('bannerTargetSubtext');
         const controls = document.getElementById('bannerControls');
-        const progressBar = document.getElementById('bannerProgressBar');
-
         if (state.activeTimer.taskId && state.activeTimer.dayMode) {
           const task = findTask(state.activeTimer.dayMode, state.activeTimer.taskId);
           if (task) {
             const liveSec = getTaskLiveSeconds(task, state.activeTimer.dayMode);
-            const targetSec = (task.targetMinutes || 60) * 60;
-            const pct = Math.min(100, Math.round((liveSec / targetSec) * 100));
-
             dot.className = 'h-3 w-3 rounded-full bg-emerald-400 animate-ping shrink-0';
-            statusLabel.textContent = 'LIVE FOCUS SESSION RUNNING';
-            statusLabel.className = 'text-xs font-bold uppercase tracking-wider text-emerald-400';
+            statusLabel.textContent = 'FOCUS IN PROGRESS';
+            statusLabel.className = 'text-xs font-bold uppercase tracking-wider text-emerald-700';
 
             catBadge.textContent = task.category;
             catBadge.classList.remove('hidden');
 
-            titleEl.textContent = task.title + ' (' + task.timeWindow + ')';
+            titleEl.textContent = task.title;
             timerEl.textContent = formatHMS(liveSec);
-            timerEl.className = 'mono-timer text-xl sm:text-2xl font-bold text-emerald-300';
-            targetSub.textContent = 'Target: ' + task.targetMinutes + 'm (' + pct + '% of planned block)';
+            timerEl.className = 'mono-timer text-xl sm:text-2xl font-bold text-emerald-700';
+            targetSub.textContent = 'Measured from your active focus session';
 
             controls.classList.remove('hidden');
             controls.classList.add('flex');
-            progressBar.style.width = pct + '%';
             return;
           }
         }
 
         dot.className = 'h-3 w-3 rounded-full bg-slate-600 shrink-0';
-        statusLabel.textContent = 'IDLE / ON BREAK — CLICK ANY SCHEDULE CARD BELOW TO START TRACKING';
+        statusLabel.textContent = 'NO TASK IN PROGRESS';
         statusLabel.className = 'text-xs font-semibold uppercase tracking-wider text-slate-400';
         catBadge.classList.add('hidden');
-        titleEl.textContent = 'No active task running right now';
+        titleEl.textContent = 'Choose a task and select Start focus';
         timerEl.textContent = '00:00:00';
         timerEl.className = 'mono-timer text-xl sm:text-2xl font-bold text-slate-400';
-        targetSub.textContent = 'Click a task to start timer & open its learning roadmap';
+        targetSub.textContent = 'Your elapsed time is measured automatically';
         controls.classList.add('hidden');
         controls.classList.remove('flex');
-        progressBar.style.width = '0%';
       }
 
       function renderKPIs() {
@@ -1128,14 +1476,11 @@
 
         document.getElementById('kpiTotalTracked').textContent = formatHumanDuration(totalSec);
         document.getElementById('kpiTotalSub').textContent =
-          totalSessions + ' bursts • ' + (state.pomodoro.completedToday || 0) + ' 🍅 Pomodoros';
+          totalSessions + ' ' + (totalSessions === 1 ? 'focus session' : 'focus sessions') +
+          ' · ' + (state.pomodoro.completedToday || 0) + ' Pomodoros';
 
         document.getElementById('kpiDsaTracked').textContent = formatHumanDuration(dsaSec);
-        const dsaTargetMin = list
-          .filter(function (x) { return x.category === 'DSA & Scaler'; })
-          .reduce(function (acc, x) { return acc + (x.targetMinutes || 0); }, 0);
-        document.getElementById('kpiDsaSub').textContent =
-          state.currentTopic + ' (' + Math.round((dsaTargetMin / 60) * 10) / 10 + 'h planned)';
+        document.getElementById('kpiDsaSub').textContent = state.currentTopic;
 
         document.getElementById('kpiAiTracked').textContent = formatHumanDuration(aiSec);
         const aiBadge = document.getElementById('kpiAiBadge');
@@ -1144,17 +1489,9 @@
         const aiDoneCount = aiTrack.items.filter(function (i) { return i.done; }).length;
         const aiRemCount = aiTrack.items.filter(function (i) { return !i.done; }).length;
 
-        if (aiSec > 45 * 60) {
-          aiBadge.textContent = 'Over 45m Cap!';
-          aiBadge.className = 'rounded-md bg-rose-500/20 px-2 py-0.5 text-[11px] font-semibold text-rose-300';
-          aiSub.textContent = 'Time-box alert: Switch back to DSA!';
-          aiSub.className = 'mt-1 text-xs text-rose-400 font-medium';
-        } else {
-          aiBadge.textContent = aiDoneCount + ' Done / ' + aiRemCount + ' Left';
-          aiBadge.className = 'rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold text-purple-400';
-          aiSub.textContent = Math.max(0, 45 - Math.floor(aiSec / 60)) + 'm left in daily 45m cap';
-          aiSub.className = 'mt-1 text-xs text-slate-400';
-        }
+        aiBadge.textContent = aiRemCount + ' remaining';
+        aiBadge.className = 'rounded-md bg-purple-500/10 px-2 py-0.5 text-[11px] font-semibold text-purple-700';
+        aiSub.textContent = aiDoneCount + ' project steps complete';
 
         const pctDone = list.length ? Math.round((completedCount / list.length) * 100) : 0;
         document.getElementById('kpiDonePercent').textContent = pctDone + '%';
@@ -1162,14 +1499,17 @@
 
         const solvedDp = state.dsaProblems.filter(function (p) { return p.status === 'Solved'; }).length;
         document.getElementById('kpiDpSolvedSub').textContent =
-          'Problems Solved: ' + solvedDp + ' / ' + state.dsaProblems.length;
+          solvedDp + ' of ' + state.dsaProblems.length + ' learning goals complete';
       }
 
       function renderScheduleList() {
+        document.getElementById('healthTrackerPanel').classList.toggle(
+          'hidden',
+          state.activeView !== 'schedule' || state.categoryFilter !== 'Health & Gym'
+        );
+        renderHealthTracker();
         const container = document.getElementById('scheduleListContainer');
         const list = state.schedules[state.dayMode] || [];
-        const now = new Date();
-        const currentHourFloat = now.getHours() + now.getMinutes() / 60;
 
         const filtered = list.filter(function (item) {
           if (state.categoryFilter === 'all') return true;
@@ -1184,14 +1524,7 @@
             state.activeTimer.dayMode === state.dayMode;
           const isExpanded = !!state.expandedTaskIds[task.id];
           const liveSec = getTaskLiveSeconds(task, state.dayMode);
-          const targetSec = (task.targetMinutes || 60) * 60;
-          const pct = Math.min(100, Math.round((liveSec / targetSec) * 100));
           const styleObj = CATEGORY_STYLES[task.category] || CATEGORY_STYLES['Life & Routine'];
-          const isCurrentTimeSlot =
-            typeof task.startHour === 'number' &&
-            typeof task.endHour === 'number' &&
-            currentHourFloat >= task.startHour &&
-            currentHourFloat < task.endHour;
 
           const track = getTrackForTask(task);
           const achievedItems = track.items.filter(function (item) { return item.done; });
@@ -1205,8 +1538,6 @@
             baseBorder = 'active-task-card border-indigo-500 bg-indigo-950/25';
           } else if (task.completed) {
             baseBorder = 'border-emerald-800/50 bg-slate-900/40 opacity-85';
-          } else if (isCurrentTimeSlot) {
-            baseBorder = 'border-indigo-500/50 bg-slate-900/95';
           }
 
           card.className = 'group relative rounded-2xl border p-4 transition-all ' + baseBorder;
@@ -1244,104 +1575,64 @@
             : '<div class="rounded-xl border border-dashed border-slate-800 p-3 text-xs text-emerald-400">All queued milestones completed! Add your next learning goal below.</div>';
 
           card.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none" data-card-header="${task.id}">
-              <div class="flex items-start gap-3.5 min-w-0">
-                <!-- Play / Pause Visual Indicator Button -->
-                <button type="button" data-action="toggle-timer" data-id="${task.id}"
-                  class="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                    isRunning
-                      ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
-                      : task.completed
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                      : 'bg-slate-800 text-slate-200 group-hover:bg-indigo-600 group-hover:text-white'
-                  }"
-                  title="${isRunning ? 'Click to pause for a break' : 'Click to start timer and open content'}">
+            <div class="flex flex-col gap-3" data-card-header="${task.id}">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${styleObj.badge}">${task.category}</span>
                   ${
-                    isRunning
-                      ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 5h4v14H6V5zm8 0h4v14h-4V5z"/></svg>'
-                      : '<svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+                    task.category === 'DSA & Scaler'
+                      ? '<span class="rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">' + state.currentTopic + '</span>'
+                      : ''
                   }
-                </button>
+                  <span class="text-[11px] text-slate-500">${task.completed ? 'Completed' : isRunning ? 'In progress' : 'Not started'}</span>
+                  ${
+                    totalMilestones
+                      ? '<span class="text-[11px] text-slate-500">' + achievedItems.length + ' of ' + totalMilestones + ' progress items complete</span>'
+                      : ''
+                  }
+                </div>
+                <h3 class="mt-2 text-base font-bold ${task.completed ? 'line-through text-slate-400' : 'text-slate-800'}">${task.title}</h3>
+                <p class="mt-1 text-sm text-slate-600 leading-relaxed">${task.desc || 'Add a short description so it is clear what you want to do.'}</p>
+              </div>
 
-                <div class="min-w-0 flex-1">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="mono-timer text-xs font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 rounded-md px-2 py-0.5">${task.timeWindow}</span>
-                    <span class="rounded-md border px-2 py-0.5 text-[11px] font-semibold ${styleObj.badge}">${task.category}</span>
-                    ${
-                      task.category === 'DSA & Scaler'
-                        ? '<span class="rounded-md bg-emerald-950 border border-emerald-700/40 px-2 py-0.5 text-[10px] font-medium text-emerald-300">' + state.currentTopic + '</span>'
-                        : ''
-                    }
-                    <span class="rounded-md bg-slate-800/90 border border-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
-                      ✓ ${achievedItems.length} Achieved • ${remainingItems.length} Remaining
-                    </span>
-                    ${
-                      isCurrentTimeSlot
-                        ? '<span class="rounded-md bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-300">Current Slot</span>'
-                        : ''
-                    }
-                    ${
+              <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                <div class="flex items-center gap-3">
+                  <div>
+                    <div class="text-[10px] font-semibold uppercase tracking-wide text-slate-500">${isRunning ? 'Time this session' : 'Time tracked'}</div>
+                    <div data-live-timer="${task.id}" class="mono-timer text-lg font-bold ${isRunning ? 'text-emerald-700' : 'text-slate-700'}">${formatHMS(liveSec)}</div>
+                    <div class="text-[10px] text-slate-500">${task.sessions || 0} ${(task.sessions === 1) ? 'focus session' : 'focus sessions'}</div>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" data-action="toggle-timer" data-id="${task.id}"
+                    class="rounded-lg px-3 py-2 text-xs font-semibold transition ${
                       isRunning
-                        ? '<span class="rounded-md bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">Active — Click to Take Break</span>'
-                        : ''
-                    }
-                  </div>
-
-                  <h3 class="mt-1.5 text-sm sm:text-base font-bold ${
-                    task.completed ? 'line-through text-slate-400' : 'text-white'
-                  }">${task.title}</h3>
-                  <p class="mt-0.5 text-xs text-slate-400 leading-relaxed">${task.desc || ''}</p>
-                </div>
-              </div>
-
-              <!-- Right Side Timer Readout & Quick Controls -->
-              <div class="flex sm:flex-col items-center sm:items-end justify-between gap-2 pl-14 sm:pl-0 shrink-0">
-                <div class="text-left sm:text-right">
-                  <div data-live-timer="${task.id}" class="mono-timer text-base sm:text-lg font-bold ${
-                    isRunning ? 'text-emerald-300' : liveSec > 0 ? 'text-white' : 'text-slate-400'
-                  }">${formatHMS(liveSec)}</div>
-                  <div class="text-[11px] text-slate-400">
-                    Target: ${task.targetMinutes}m • ${task.sessions || 0} ${(task.sessions === 1) ? 'session' : 'sessions'}
-                  </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <button type="button" data-action="toggle-drawer" data-id="${task.id}"
-                    class="rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
-                      isExpanded
-                        ? 'bg-indigo-600 border-indigo-500 text-white'
-                        : 'bg-indigo-500/15 hover:bg-indigo-500/25 border-indigo-500/30 text-indigo-300'
-                    }"
-                    title="Open or close what you have learned/achieved vs what is remaining">
-                    📖 ${isExpanded ? 'Hide Content' : 'Content (' + achievedItems.length + '/' + totalMilestones + ')'}
-                  </button>
-                  <button type="button" data-action="edit-task" data-id="${task.id}"
-                    class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition"
-                    title="Edit task name, time window, or notes">Edit</button>
-                  <button type="button" data-action="add-5m" data-id="${task.id}"
-                    class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition"
-                    title="Add 5 minutes manually">+5m</button>
-                  <button type="button" data-action="sub-5m" data-id="${task.id}"
-                    class="rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-300 transition"
-                    title="Subtract 5 minutes">-5m</button>
-                  <button type="button" data-action="toggle-done" data-id="${task.id}"
-                    class="rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition ${
-                      task.completed
-                        ? 'bg-emerald-600/30 border-emerald-500/50 text-emerald-200'
-                        : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                        ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                        : 'bg-indigo-600 text-white hover:bg-indigo-500'
                     }">
-                    ${task.completed ? '✓ Done' : 'Mark Done'}
+                    ${isRunning ? 'Pause focus' : 'Start focus'}
                   </button>
-                  <button type="button" data-action="delete-task" data-id="${task.id}"
-                    class="rounded-lg bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 px-2 py-1 text-[11px] text-slate-400 hover:text-rose-300 transition"
-                    title="Remove this block">✕</button>
+                  <button type="button" data-action="toggle-done" data-id="${task.id}"
+                    class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                    ${task.completed ? 'Reopen task' : 'Mark complete'}
+                  </button>
+                  <button type="button" data-action="toggle-drawer" data-toggle-details data-id="${task.id}"
+                    class="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                    aria-expanded="${isExpanded}">
+                    ${isExpanded ? 'Hide task details' : 'View task details'}
+                  </button>
+                  <details class="relative">
+                    <summary class="cursor-pointer list-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">More</summary>
+                    <div class="absolute right-0 z-10 mt-1 flex min-w-36 flex-col gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+                      <button type="button" data-action="edit-task" data-id="${task.id}" class="rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50">Edit task</button>
+                      <button type="button" data-action="add-5m" data-id="${task.id}" class="rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50">Add 5 minutes</button>
+                      <button type="button" data-action="sub-5m" data-id="${task.id}" class="rounded-md px-2 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50">Remove 5 minutes</button>
+                      <button type="button" data-action="delete-task" data-id="${task.id}" class="rounded-md px-2 py-1.5 text-left text-xs text-rose-700 hover:bg-rose-50">Delete task</button>
+                    </div>
+                  </details>
                 </div>
               </div>
-            </div>
-
-            <!-- Progress Bar inside Card -->
-            <div class="mt-3 h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
-              <div data-live-bar="${task.id}" class="h-full ${styleObj.bar} transition-all duration-300" style="width: ${pct}%"></div>
             </div>
 
             <!-- EXPANDABLE INSIDE-TASK CONTENT & LEARNING ROADMAP DRAWER -->
@@ -1412,20 +1703,17 @@
           const headerEl = card.querySelector('[data-card-header="' + task.id + '"]');
           headerEl.addEventListener('click', function (e) {
             const actionBtn = e.target.closest('button[data-action]');
-            if (actionBtn) {
-              e.stopPropagation();
-              const act = actionBtn.getAttribute('data-action');
-              const id = actionBtn.getAttribute('data-id');
-              if (act === 'toggle-timer') toggleTaskTimer(state.dayMode, id);
-              else if (act === 'toggle-drawer') toggleTaskDrawerOnly(id);
-              else if (act === 'toggle-done') toggleTaskComplete(state.dayMode, id);
-              else if (act === 'add-5m') adjustTaskTime(state.dayMode, id, 300);
-              else if (act === 'sub-5m') adjustTaskTime(state.dayMode, id, -300);
-              else if (act === 'edit-task') openTaskModalForEdit(state.dayMode, id);
-              else if (act === 'delete-task') deleteTask(state.dayMode, id);
-              return;
-            }
-            toggleTaskTimer(state.dayMode, task.id);
+            if (!actionBtn) return;
+            e.stopPropagation();
+            const act = actionBtn.getAttribute('data-action');
+            const id = actionBtn.getAttribute('data-id');
+            if (act === 'toggle-timer') toggleTaskTimer(state.dayMode, id);
+            else if (act === 'toggle-drawer') toggleTaskDrawerOnly(id);
+            else if (act === 'toggle-done') toggleTaskComplete(state.dayMode, id);
+            else if (act === 'add-5m') adjustTaskTime(state.dayMode, id, 300);
+            else if (act === 'sub-5m') adjustTaskTime(state.dayMode, id, -300);
+            else if (act === 'edit-task') openTaskModalForEdit(state.dayMode, id);
+            else if (act === 'delete-task') deleteTask(state.dayMode, id);
           });
 
           // Checkbox toggles inside drawer (Remaining <-> Achieved)
@@ -1504,6 +1792,162 @@
 
           container.appendChild(card);
         });
+
+        if (!filtered.length) {
+          const emptyState = document.createElement('div');
+          emptyState.className = 'rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center';
+          const title = document.createElement('h3');
+          title.className = 'text-sm font-semibold text-slate-800';
+          title.textContent = 'No tasks in this category yet';
+          const detail = document.createElement('p');
+          detail.className = 'mt-2 text-xs text-slate-500';
+          detail.textContent = 'Add a task here when you have something you want to track.';
+          emptyState.appendChild(title);
+          emptyState.appendChild(detail);
+          container.appendChild(emptyState);
+        }
+      }
+
+      const HEALTH_MEASUREMENTS = [
+        { key: 'weightKg', label: 'Weight', unit: 'kg' },
+        { key: 'heightCm', label: 'Height', unit: 'cm' },
+        { key: 'waistCm', label: 'Waist', unit: 'cm' },
+        { key: 'hipsCm', label: 'Hips', unit: 'cm' },
+        { key: 'chestCm', label: 'Chest', unit: 'cm' },
+        { key: 'neckCm', label: 'Neck', unit: 'cm' },
+        { key: 'armCm', label: 'Upper arm', unit: 'cm' },
+        { key: 'thighCm', label: 'Thigh', unit: 'cm' },
+        { key: 'bodyFatPercent', label: 'Body fat', unit: '%' }
+      ];
+
+      function healthNumber(value) {
+        const parsed = Number(value);
+        return value !== '' && value !== null && value !== undefined && Number.isFinite(parsed) && parsed > 0
+          ? parsed
+          : null;
+      }
+
+      function formatHealthNumber(value) {
+        return String(Math.round(value * 10) / 10);
+      }
+
+      function renderHealthTracker() {
+        const dateInput = document.querySelector('#healthMeasurementForm [name="date"]');
+        if (dateInput && !dateInput.value) dateInput.value = getDateKey(new Date());
+
+        const goalForm = document.getElementById('healthGoalsForm');
+        if (goalForm && !goalForm.contains(document.activeElement)) {
+          goalForm.elements.weightKg.value = state.healthGoals.weightKg || '';
+          goalForm.elements.waistCm.value = state.healthGoals.waistCm || '';
+        }
+
+        const sortedEntries = state.healthEntries.slice().sort(function (a, b) {
+          const dateDifference = String(b.date || '').localeCompare(String(a.date || ''));
+          return dateDifference || (b.recordedAt || 0) - (a.recordedAt || 0);
+        });
+        const latest = sortedEntries[0];
+        const insights = document.getElementById('healthInsights');
+        insights.innerHTML = '';
+
+        if (!latest) {
+          const emptyState = document.createElement('p');
+          emptyState.className = 'rounded-xl bg-slate-50 p-3 text-xs text-slate-500 sm:col-span-2';
+          emptyState.textContent = 'No check-ins yet. Add any measurements you want above to start seeing your personal trends.';
+          insights.appendChild(emptyState);
+        } else {
+          HEALTH_MEASUREMENTS.forEach(function (measurement) {
+            const currentValue = healthNumber(latest[measurement.key]);
+            if (currentValue === null) return;
+            const previousEntry = sortedEntries.slice(1).find(function (entry) {
+              return healthNumber(entry[measurement.key]) !== null;
+            });
+            const previousValue = previousEntry ? healthNumber(previousEntry[measurement.key]) : null;
+
+            const card = document.createElement('div');
+            card.className = 'rounded-xl border border-slate-200 bg-slate-50 p-3';
+            const label = document.createElement('div');
+            label.className = 'text-[11px] font-semibold text-slate-500';
+            label.textContent = measurement.label;
+            const value = document.createElement('div');
+            value.className = 'mt-1 text-base font-bold text-slate-800';
+            value.textContent = formatHealthNumber(currentValue) + ' ' + measurement.unit;
+            const detail = document.createElement('div');
+            detail.className = 'mt-1 text-[10px] text-slate-500';
+            if (previousValue !== null) {
+              const difference = currentValue - previousValue;
+              const sign = difference > 0 ? '+' : '';
+              detail.textContent = sign + formatHealthNumber(difference) + ' ' + measurement.unit + ' since previous entry';
+            } else {
+              detail.textContent = 'First recorded entry';
+            }
+
+            const goalKey = measurement.key === 'weightKg'
+              ? 'weightKg'
+              : measurement.key === 'waistCm'
+                ? 'waistCm'
+                : null;
+            if (goalKey && healthNumber(state.healthGoals[goalKey]) !== null) {
+              const target = healthNumber(state.healthGoals[goalKey]);
+              const targetNote = document.createElement('div');
+              targetNote.className = 'mt-1 text-[10px] text-indigo-700';
+              targetNote.textContent = 'Your personal target: ' + formatHealthNumber(target) + ' ' + measurement.unit;
+              card.appendChild(label);
+              card.appendChild(value);
+              card.appendChild(detail);
+              card.appendChild(targetNote);
+            } else {
+              card.appendChild(label);
+              card.appendChild(value);
+              card.appendChild(detail);
+            }
+            insights.appendChild(card);
+          });
+        }
+
+        const history = document.getElementById('healthEntriesList');
+        history.innerHTML = '';
+        if (!sortedEntries.length) {
+          const emptyHistory = document.createElement('p');
+          emptyHistory.className = 'text-xs text-slate-500';
+          emptyHistory.textContent = 'Your saved check-ins will appear here.';
+          history.appendChild(emptyHistory);
+          return;
+        }
+
+        sortedEntries.slice(0, 12).forEach(function (entry) {
+          const row = document.createElement('div');
+          row.className = 'flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5';
+          const info = document.createElement('div');
+          info.className = 'min-w-0';
+          const date = document.createElement('div');
+          date.className = 'text-xs font-semibold text-slate-700';
+          const parsedDate = new Date(String(entry.date || '') + 'T00:00:00');
+          date.textContent = Number.isNaN(parsedDate.getTime())
+            ? 'Date not recorded'
+            : parsedDate.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+          const values = document.createElement('div');
+          values.className = 'mt-1 text-[11px] leading-relaxed text-slate-500';
+          values.textContent = HEALTH_MEASUREMENTS.map(function (measurement) {
+            const value = healthNumber(entry[measurement.key]);
+            return value === null ? '' : measurement.label + ' ' + formatHealthNumber(value) + ' ' + measurement.unit;
+          }).filter(Boolean).join(' · ');
+          info.appendChild(date);
+          info.appendChild(values);
+
+          const removeButton = document.createElement('button');
+          removeButton.type = 'button';
+          removeButton.className = 'rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50';
+          removeButton.textContent = 'Delete';
+          removeButton.addEventListener('click', function () {
+            if (!window.confirm('Delete this health check-in?')) return;
+            state.healthEntries = state.healthEntries.filter(function (item) { return item.id !== entry.id; });
+            saveState();
+            renderAll();
+          });
+          row.appendChild(info);
+          row.appendChild(removeButton);
+          history.appendChild(row);
+        });
       }
 
       function renderDsaProblems() {
@@ -1571,14 +2015,16 @@
       function renderAnalytics() {
         const list = state.schedules[state.dayMode] || [];
         const categories = ['DSA & Scaler', 'IAM Work', 'AI & LifeOS', 'Health & Gym', 'Life & Routine'];
+        const allTrackedSec = list.reduce(function (acc, task) {
+          return acc + getTaskLiveSeconds(task, state.dayMode);
+        }, 0);
         const catContainer = document.getElementById('categoryBreakdownList');
         catContainer.innerHTML = '';
 
         categories.forEach(function (cat) {
           const items = list.filter(function (i) { return i.category === cat; });
-          const plannedSec = items.reduce(function (acc, i) { return acc + (i.targetMinutes || 0) * 60; }, 0);
           const actualSec = items.reduce(function (acc, i) { return acc + getTaskLiveSeconds(i, state.dayMode); }, 0);
-          const pct = plannedSec > 0 ? Math.min(100, Math.round((actualSec / plannedSec) * 100)) : 0;
+          const pct = allTrackedSec > 0 ? Math.round((actualSec / allTrackedSec) * 100) : 0;
           const styleObj = CATEGORY_STYLES[cat] || CATEGORY_STYLES['Life & Routine'];
 
           const row = document.createElement('div');
@@ -1587,7 +2033,7 @@
             <div class="flex items-center justify-between text-xs">
               <span class="font-semibold text-slate-200">${cat}</span>
               <span class="mono-timer text-slate-400">
-                <strong class="text-white">${formatHumanDuration(actualSec)}</strong> / ${Math.round((plannedSec / 3600) * 10) / 10}h planned (${pct}%)
+                <strong class="text-white">${formatHumanDuration(actualSec)}</strong> · ${pct}% of tracked time
               </span>
             </div>
             <div class="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
@@ -1602,7 +2048,7 @@
         if (!state.sessionLogs.length) {
           logContainer.innerHTML = `
             <div class="rounded-xl border border-dashed border-slate-800 p-6 text-center text-xs text-slate-400">
-              No work bursts logged yet today. Click any task in your schedule to start a timer, and click again when taking a break!
+              No focus sessions logged yet. Start a task timer and pause it when you take a break.
             </div>
           `;
         } else {
@@ -1612,7 +2058,7 @@
             item.innerHTML = `
               <div class="min-w-0">
                 <div class="font-semibold text-slate-200 truncate">${log.taskTitle}</div>
-                <div class="text-[11px] text-slate-400">${log.timeRange} • ${log.category} • ${log.reason}</div>
+                <div class="text-[11px] text-slate-400">${log.category} · ${log.reason}</div>
               </div>
               <div class="mono-timer font-bold text-emerald-400 shrink-0">+${formatHumanDuration(log.durationSec)}</div>
             `;
@@ -1639,7 +2085,7 @@
         const summary = document.getElementById('coachSummary');
         summary.innerHTML = '';
         [
-          { label: 'Schedule blocks', value: schedule.length ? completed + ' / ' + schedule.length : 'None yet' },
+          { label: 'Tasks completed', value: schedule.length ? completed + ' / ' + schedule.length : 'None yet' },
           { label: 'Focus tracked', value: formatHumanDuration(focusSeconds) },
           { label: 'Problems solved', value: String(solved) },
           { label: 'Active days this week', value: activeDays + ' / 7' }
@@ -1668,25 +2114,22 @@
           });
         } else if (schedule.length) {
           const unfinished = schedule.filter(function (task) { return !task.completed; });
-          const hour = new Date().getHours();
-          const nextTask = unfinished.find(function (task) {
-            return typeof task.startHour !== 'number' || task.startHour >= hour;
-          }) || unfinished[0];
+          const nextTask = unfinished[0];
           if (nextTask) {
             insights.push({
               title: 'A useful next step',
-              detail: 'Start "' + nextTask.title + '"' + (nextTask.category ? ' (' + nextTask.category + ')' : '') + '. Begin with one focused session and mark the block complete when you finish.'
+              detail: 'Start "' + nextTask.title + '"' + (nextTask.category ? ' (' + nextTask.category + ')' : '') + '. Begin with one focused session and mark the task complete when you finish.'
             });
           } else {
             insights.push({
-              title: 'You completed today’s schedule',
-              detail: 'All ' + schedule.length + ' blocks in this schedule are marked complete. Review your progress or plan a realistic next step for tomorrow.'
+              title: 'You completed all your tasks',
+              detail: 'All ' + schedule.length + ' tasks are marked complete. Review your progress or choose a realistic next step.'
             });
           }
         } else {
           insights.push({
             title: 'Set up your next step',
-            detail: 'Your current schedule is empty. Add a schedule block or choose a learning goal to give your coach something to work with.'
+            detail: 'Your task list is empty. Add a task or choose a learning goal to give your coach something to work with.'
           });
         }
 
@@ -1755,21 +2198,41 @@
       }
 
       function renderControlsState() {
+        const categoryLabels = {
+          'DSA & Scaler': 'Learning',
+          'IAM Work': 'Work',
+          'AI & LifeOS': 'Projects',
+          'Health & Gym': 'Health',
+          'Life & Routine': 'Personal'
+        };
+        const isSchedulePage = state.activeView === 'schedule';
+        const isToday = isSchedulePage && state.categoryFilter === 'all';
+        const categoryLabel = categoryLabels[state.categoryFilter];
+        document.getElementById('appScheduleHeader').classList.toggle('hidden', !isSchedulePage);
+        const pageIntro = document.getElementById('schedulePageIntro');
+        pageIntro.classList.toggle('hidden', !isSchedulePage);
+        document.getElementById('homeStats').classList.toggle('hidden', !isToday);
+        document.getElementById('streakSection').classList.toggle('hidden', !isToday);
+        document.getElementById('courseProgressQuickLink').classList.toggle(
+          'hidden',
+          !(isSchedulePage && state.categoryFilter === 'DSA & Scaler')
+        );
+        document.getElementById('schedulePageEyebrow').textContent = isToday ? 'Your day' : 'Category';
+        document.getElementById('schedulePageTitle').textContent = isToday
+          ? 'Today’s tasks'
+          : (categoryLabel || 'Your tasks');
+        document.getElementById('schedulePageDescription').textContent = isToday
+          ? 'Choose a task when you’re ready. LifeOS measures the time you actually spend.'
+          : state.categoryFilter === 'DSA & Scaler'
+            ? 'Your course-related tasks. Open course progress for your topic and problem queue.'
+            : 'Tasks in this area, with time measured only while you are focusing.';
+
         document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
           const mode = btn.getAttribute('data-daymode');
           if (mode === state.dayMode) {
             btn.className = 'day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition bg-indigo-600 text-white shadow';
           } else {
             btn.className = 'day-mode-btn rounded-lg px-3 py-1.5 text-xs font-semibold transition text-slate-400 hover:text-white';
-          }
-        });
-
-        document.querySelectorAll('.view-tab-btn').forEach(function (btn) {
-          const v = btn.getAttribute('data-view');
-          if (v === state.activeView) {
-            btn.className = 'view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition bg-slate-800 text-white border border-slate-700';
-          } else {
-            btn.className = 'view-tab-btn rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition text-slate-400 hover:text-white';
           }
         });
 
@@ -1781,13 +2244,22 @@
           }
         });
 
-        document.querySelectorAll('.cat-filter-btn').forEach(function (btn) {
-          const c = btn.getAttribute('data-cat');
-          if (c === state.categoryFilter) {
-            btn.className = 'cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-semibold transition bg-indigo-500/20 text-indigo-300 border border-indigo-500/40';
-          } else {
-            btn.className = 'cat-filter-btn rounded-lg px-2.5 py-1 text-xs font-medium transition bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200';
+        document.querySelectorAll('#mainSidebar .sidebar-link').forEach(function (btn) {
+          const category = btn.getAttribute('data-category-nav');
+          const page = btn.getAttribute('data-app-page');
+          let isActive = false;
+          if (category) {
+            isActive = isSchedulePage && category === state.categoryFilter;
+          } else if (page === 'today') {
+            isActive = isToday;
+          } else if (page === 'learning-progress') {
+            isActive = state.activeView === 'dsa';
+          } else if (page === 'insights') {
+            isActive = state.activeView === 'analytics';
+          } else if (page === 'coach') {
+            isActive = state.activeView === 'coach';
           }
+          btn.classList.toggle('active', isActive);
         });
       }
 
@@ -1850,12 +2322,8 @@
           const task = findTask(state.activeTimer.dayMode, state.activeTimer.taskId);
           if (task && state.dayMode === state.activeTimer.dayMode) {
             const liveSec = getTaskLiveSeconds(task, state.dayMode);
-            const targetSec = (task.targetMinutes || 60) * 60;
-            const pct = Math.min(100, Math.round((liveSec / targetSec) * 100));
             const timerNode = document.querySelector('[data-live-timer="' + task.id + '"]');
             if (timerNode) timerNode.textContent = formatHMS(liveSec);
-            const barNode = document.querySelector('[data-live-bar="' + task.id + '"]');
-            if (barNode) barNode.style.width = pct + '%';
           }
         }
       }
@@ -1866,29 +2334,32 @@
           showToast('Your private coach reviewed the latest tracker data');
         });
 
+        document.querySelectorAll('#mainSidebar [data-app-view], #courseProgressQuickLink').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.activeView = btn.getAttribute('data-app-view');
+            if (btn.getAttribute('data-app-page') === 'today') {
+              state.categoryFilter = 'all';
+            }
+            saveState();
+            renderAll();
+          });
+        });
+
+        document.querySelectorAll('[data-category-nav]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            state.activeView = 'schedule';
+            state.categoryFilter = btn.getAttribute('data-category-nav');
+            saveState();
+            renderAll();
+          });
+        });
+
         document.querySelectorAll('.day-mode-btn').forEach(function (btn) {
           btn.addEventListener('click', function () {
             state.dayMode = btn.getAttribute('data-daymode');
             state.dayModeDate = getDateKey(new Date());
             saveState();
             renderAll();
-          });
-        });
-
-        document.querySelectorAll('.view-tab-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            state.activeView = btn.getAttribute('data-view');
-            saveState();
-            renderAll();
-          });
-        });
-
-        document.querySelectorAll('.cat-filter-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            state.categoryFilter = btn.getAttribute('data-cat');
-            saveState();
-            renderScheduleList();
-            renderControlsState();
           });
         });
 
@@ -1951,6 +2422,53 @@
           renderScheduleList();
         });
 
+        document.getElementById('healthMeasurementForm').addEventListener('submit', function (event) {
+          event.preventDefault();
+          const form = event.currentTarget;
+          const values = {};
+          let hasMeasurement = false;
+          HEALTH_MEASUREMENTS.forEach(function (measurement) {
+            const rawValue = form.elements[measurement.key].value.trim();
+            if (!rawValue) return;
+            const value = Number(rawValue);
+            if (!Number.isFinite(value) || value <= 0) return;
+            values[measurement.key] = value;
+            hasMeasurement = true;
+          });
+          if (!hasMeasurement) {
+            showToast('Enter at least one measurement to save a check-in');
+            return;
+          }
+          state.healthEntries.push({
+            id: 'health-' + Date.now(),
+            date: form.elements.date.value,
+            recordedAt: Date.now(),
+            ...values
+          });
+          saveState();
+          form.reset();
+          form.elements.date.value = getDateKey(new Date());
+          renderAll();
+          showToast('Health check-in saved in this browser');
+        });
+
+        document.getElementById('healthGoalsForm').addEventListener('submit', function (event) {
+          event.preventDefault();
+          const form = event.currentTarget;
+          const parseGoal = function (raw) {
+            if (!raw) return '';
+            const value = Number(raw);
+            return Number.isFinite(value) && value > 0 ? value : '';
+          };
+          state.healthGoals = {
+            weightKg: parseGoal(form.elements.weightKg.value.trim()),
+            waistCm: parseGoal(form.elements.waistCm.value.trim())
+          };
+          saveState();
+          renderAll();
+          showToast('Your personal targets were saved');
+        });
+
         document.querySelectorAll('.topic-preset-chip').forEach(function (chip) {
           chip.addEventListener('click', function () {
             state.currentTopic = chip.getAttribute('data-topic-preset');
@@ -2006,8 +2524,6 @@
           e.preventDefault();
           const editingId = document.getElementById('editingTaskId').value.trim();
           const title = document.getElementById('customTaskTitle').value.trim();
-          const windowStr = document.getElementById('customTaskWindow').value.trim();
-          const mins = parseInt(document.getElementById('customTaskMinutes').value, 10) || 45;
           const cat = document.getElementById('customTaskCategory').value;
           const desc = document.getElementById('customTaskDesc').value.trim();
           if (!title) return;
@@ -2016,8 +2532,6 @@
             const existing = findTask(state.dayMode, editingId);
             if (existing) {
               existing.title = title;
-              existing.timeWindow = windowStr || existing.timeWindow;
-              existing.targetMinutes = mins;
               existing.category = cat;
               existing.desc = desc;
               showToast('Updated task "' + title + '"');
@@ -2025,8 +2539,6 @@
           } else {
             state.schedules[state.dayMode].push({
               id: state.dayMode + '-custom-' + Date.now(),
-              timeWindow: windowStr || 'Custom Slot',
-              targetMinutes: mins,
               title: title,
               category: cat,
               desc: desc || 'Custom focus block',
@@ -2087,7 +2599,7 @@
           list.forEach(function (t) {
             const sec = getTaskLiveSeconds(t, state.dayMode);
             if (sec > 0 || t.completed) {
-              lines.push('- [' + (t.completed ? 'x' : ' ') + '] ' + t.timeWindow + ' | ' + t.title + ': ' + formatHumanDuration(sec));
+              lines.push('- [' + (t.completed ? 'x' : ' ') + '] ' + t.title + ': ' + formatHumanDuration(sec));
             }
           });
           const text = lines.join('\n');
